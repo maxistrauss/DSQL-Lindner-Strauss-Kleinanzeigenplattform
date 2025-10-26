@@ -1,0 +1,15 @@
+body {
+    background: #f8f9fa;
+}
+.category-card {
+    transition: transform .15s ease-in-out, box-shadow .15s;
+}
+.category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+.card .card-body .card-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

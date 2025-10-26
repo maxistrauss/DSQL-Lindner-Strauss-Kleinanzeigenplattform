@@ -22,7 +22,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         adRepository.deleteAll();
 
         // Save a sample ad
-        Ad sampleAd = new Ad("Test Ad Title", "This is a test description for a sample ad.");
+        Ad sampleAd = new Ad("Test Ad Title", "This is a test description for a sample ad.", 0.0);
         adRepository.save(sampleAd);
         System.out.println("Saved sample ad: " + sampleAd);
 

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class WebController {
 
-    @GetMapping("/")
+    @GetMapping("/test")
     public String index(Model model) {
         model.addAttribute("message", "Thymeleaf funktioniert!");
         return "index";

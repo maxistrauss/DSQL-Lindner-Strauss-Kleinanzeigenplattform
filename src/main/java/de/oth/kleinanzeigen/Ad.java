@@ -10,13 +10,17 @@ public class Ad {
     private String id;
     private String title;
     private String description;
+    // TODO only for testing, remove later
+    private String imageUrl;
+    private double price;
 
     public Ad() {
     }
 
-    public Ad(String title, String description) {
+    public Ad(String title, String description, double price) {
         this.title = title;
         this.description = description;
+        this.price = price;
     }
 
     public String getId() {
@@ -42,6 +46,14 @@ public class Ad {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public String getImageUrl() { return imageUrl; }
+
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public double getPrice() { return price; }
+
+    public void setPrice(double price) { this.price = price; }
 
     @Override
     public String toString() {
