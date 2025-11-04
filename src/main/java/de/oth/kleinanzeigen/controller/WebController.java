@@ -2,6 +2,7 @@ package de.oth.kleinanzeigen.controller;
 
 import de.oth.kleinanzeigen.model.Ad;
 import de.oth.kleinanzeigen.model.Comment;
+import de.oth.kleinanzeigen.model.Seller;
 import de.oth.kleinanzeigen.repository.AdRepository;
 import de.oth.kleinanzeigen.service.GridFsService;
 import org.springframework.stereotype.Controller;
@@ -43,6 +44,11 @@ public class WebController {
         }
         ad.setCreatorId(userId);
         ad.setPublishedAt(LocalDateTime.now());
+
+        Seller seller = new Seller();
+        seller.setUsername(userId);
+        seller.setPhoneNumber("0123456789");
+        ad.setSeller(seller);
 
         if (!file.isEmpty()) {
             String imageId = gridFsService.store(file);

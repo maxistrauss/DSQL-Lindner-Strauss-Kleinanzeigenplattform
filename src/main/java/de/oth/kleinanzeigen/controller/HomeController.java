@@ -1,6 +1,7 @@
 package de.oth.kleinanzeigen.controller;
 
 import de.oth.kleinanzeigen.model.Ad;
+import de.oth.kleinanzeigen.model.Seller;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
@@ -25,9 +26,10 @@ public class HomeController {
         // Dummy data for display
         List<Ad> randomAds = new LinkedList<>();
         for (int i = 0; i < 5; i++) {
-            randomAds.add(
-                    new Ad("Ad " + i, "TEST " + i, "Category " + i, new BigDecimal(i + 0.38), LocalDateTime.now(), null,
-                            null, null, null));
+            Seller dummySeller = new Seller();
+            dummySeller.setUsername("user" + i);
+            randomAds.add(new Ad("Ad " + i, "TEST " + i, "Category " + i, new BigDecimal(i + 0.38), LocalDateTime.now(),
+                    dummySeller, null, null, "user" + i));
         }
         List<String> categories = new LinkedList<>();
         for (int i = 0; i < 5; i++) {
