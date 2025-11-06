@@ -8,6 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         comment.setCreatedAt(LocalDateTime.now().minusDays(1));
 
         Ad sampleAd = new Ad("Gebrauchtes Fahrrad", "Gut erhaltenes Herrenrad, 28 Zoll, 7 Gänge. Kaum gefahren.",
-                "Fahrräder", new BigDecimal("150.00"), LocalDateTime.now().minusDays(3), seller, List.of(comment), null,
+                "Fahrräder", new BigDecimal("150.00"), Instant.now().minusSeconds(60*60*24*3), seller, List.of(comment), null,
                 // imageId
                 seller.getUsername());
 

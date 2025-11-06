@@ -2,8 +2,11 @@ package de.oth.kleinanzeigen.controller;
 
 import de.oth.kleinanzeigen.model.Ad;
 import de.oth.kleinanzeigen.model.Seller;
+import de.oth.kleinanzeigen.repository.AdRepository;
+import de.oth.kleinanzeigen.service.KleinanzeigenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -19,22 +22,18 @@ import java.util.List;
 @Controller
 public class HomeController {
 
+    private final KleinanzeigenService kleinanzeigenService;
+
+    public HomeController(KleinanzeigenService kleinanzeigenService) {
+        this.kleinanzeigenService = kleinanzeigenService;
+    }
+
     @GetMapping("/")
     public String home(Model model, @CookieValue(name = "userId", required = false) String userId) {
         model.addAttribute("userId", userId);
 
-        // Dummy data for display
-        List<Ad> randomAds = new LinkedList<>();
-        for (int i = 0; i < 5; i++) {
-            Seller dummySeller = new Seller();
-            dummySeller.setUsername("user" + i);
-            randomAds.add(new Ad("Ad " + i, "TEST " + i, "Category " + i, new BigDecimal(i + 0.38), LocalDateTime.now(),
-                    dummySeller, null, null, "user" + i));
-        }
-        List<String> categories = new LinkedList<>();
-        for (int i = 0; i < 5; i++) {
-            categories.add((char) ('A' + i) + "");
-        }
+        List<Ad> randomAds = kleinanzeigenService.findRandomAds(5);
+        List<String> categories = kleinanzeigenService.findAllCategories();
         long categoryCount = categories.size();
 
         model.addAttribute("randomAds", randomAds);

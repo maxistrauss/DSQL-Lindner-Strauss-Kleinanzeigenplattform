@@ -5,26 +5,32 @@ import de.oth.kleinanzeigen.model.Comment;
 import de.oth.kleinanzeigen.model.Seller;
 import de.oth.kleinanzeigen.repository.AdRepository;
 import de.oth.kleinanzeigen.service.GridFsService;
+import de.oth.kleinanzeigen.service.KleinanzeigenService;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Controller
 public class WebController {
 
     private final AdRepository adRepository;
     private final GridFsService gridFsService;
+    private final KleinanzeigenService kleinanzeigenService;
+    private static final int PAGE_SIZE = 3;
 
-    public WebController(AdRepository adRepository, GridFsService gridFsService) {
+    public WebController(AdRepository adRepository, GridFsService gridFsService, KleinanzeigenService kleinanzeigenService) {
         this.adRepository = adRepository;
         this.gridFsService = gridFsService;
+        this.kleinanzeigenService = kleinanzeigenService;
     }
 
     @GetMapping("/ads/new")
@@ -43,7 +49,7 @@ public class WebController {
             return "redirect:/"; // Should not happen if form is protected
         }
         ad.setCreatorId(userId);
-        ad.setPublishedAt(LocalDateTime.now());
+        ad.setPublishedAt(Instant.now());
 
         Seller seller = new Seller();
         seller.setUsername(userId);
@@ -166,5 +172,39 @@ public class WebController {
             }
         }
         return "redirect:/";
+    }
+
+    @GetMapping("/search")
+    public String search(
+            Model model,
+            @RequestParam(name = "title") String title,
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            @CookieValue(name = "userId", required = false) String userId){
+
+        Page<Ad> adsPage = kleinanzeigenService.findAds(title, category, page, PAGE_SIZE);
+
+        model.addAttribute("userId", userId); // Add userId to the model
+        model.addAttribute("title", title);
+        model.addAttribute("category", category);
+        model.addAttribute("ads", adsPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", adsPage.getTotalPages());
+        model.addAttribute("totalElements", adsPage.getTotalElements());
+
+        // list of page indices
+        if (adsPage.getTotalPages() > 0) {
+            List<Integer> pageNumbers = IntStream.range(0, adsPage.getTotalPages())
+                    .boxed()
+                    .collect(Collectors.toList());
+            model.addAttribute("pageNumbers", pageNumbers);
+        } else {
+            model.addAttribute("pageNumbers", Collections.emptyList());
+        }
+
+        System.out.println(page);
+        System.out.println(adsPage.getTotalPages());
+        System.out.println(adsPage.getTotalElements());
+        return "search";
     }
 }

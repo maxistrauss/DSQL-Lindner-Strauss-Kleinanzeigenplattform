@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class Ad {
     private String description;
     private String category;
     private BigDecimal price;
-    private LocalDateTime publishedAt;
+    private Instant publishedAt;
     private Seller seller;
     private List<Comment> comments;
     private String imageId;
@@ -26,7 +27,7 @@ public class Ad {
     public Ad() {
     }
 
-    public Ad(String title, String description, String category, BigDecimal price, LocalDateTime publishedAt,
+    public Ad(String title, String description, String category, BigDecimal price, Instant publishedAt,
             Seller seller, List<Comment> comments, String imageId, String creatorId) {
         this.title = title;
         this.description = description;
@@ -89,11 +90,11 @@ public class Ad {
         this.price = price;
     }
 
-    public LocalDateTime getPublishedAt() {
+    public Instant getPublishedAt() {
         return publishedAt;
     }
 
-    public void setPublishedAt(LocalDateTime publishedAt) {
+    public void setPublishedAt(Instant publishedAt) {
         this.publishedAt = publishedAt;
     }
 

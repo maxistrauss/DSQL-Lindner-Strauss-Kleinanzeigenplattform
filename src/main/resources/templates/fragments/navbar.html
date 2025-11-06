@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<nav th:fragment="navbar(category)" class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="/">Kleinanzeigen</a>
+        <div class="">
+            <form class="d-flex ms-auto" action="/search" method="get">
+                <input class="form-control me-2"
+                       type="search"
+                       name="title"
+                       th:value="${param.title}"
+                       placeholder="Suche..."
+                       aria-label="Search">
+                <!-- only add if category != null -->
+                <input type="hidden" name="category"
+                       th:if="${category != null}"
+                       th:value="${category}" />
+                <button class="btn btn-outline-primary" type="submit">Suchen</button>
+            </form>
+        </div>
+    </div>
+</nav>

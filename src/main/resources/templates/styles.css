@@ -13,3 +13,15 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* Karten gleich hoch und optisch zentriert */
+.card.h-100 {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Optional: sorgt dafür, dass bei weniger als 3 Karten diese mittig stehen */
+.row.justify-content-center > .col-md-4 {
+    display: flex;
+    align-items: stretch;
+}

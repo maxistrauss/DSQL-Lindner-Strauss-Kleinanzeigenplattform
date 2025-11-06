@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<div th:fragment="ad-list-horizontal-paged(path, noAdsAlertMsg)">
+    <div class="row justify-content-center g-3">
+        <div class="col-12" th:if="${#lists.isEmpty(ads)}">
+            <div class="alert alert-info" th:text="${noAdsAlertMsg}"></div>
+        </div>
+
+        <div class="col-md-4" th:each="ad : ${ads}">
+            <div th:replace="~{fragments/ad-card :: ad-card(${ad})}"></div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Seiten-Navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? ' disabled'">
+                <a class="page-link" th:href="@{${'/categories/' + category}(page=${currentPage - 1})}" aria-label="Zurück">«</a>
+            </li>
+
+            <li class="page-item" th:each="i : ${pageNumbers}"
+                th:classappend="${i == currentPage} ? ' active'">
+                <a class="page-link"
+                   th:href="@{${'/' + path}(page=${i})}"
+                   th:text="${i + 1}">1</a>
+            </li>
+
+            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? ' disabled'">
+                <a class="page-link" th:href="@{${'/' + path}(page=${currentPage + 1})}" aria-label="Weiter">»</a>
+            </li>
+        </ul>
+    </nav>
+</div>
