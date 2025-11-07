@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,15 +21,13 @@ public class KleinanzeigenService {
     public List<Ad> findRandomAds(int n) {
         BasicQuery query = new BasicQuery("{}", "{}");
         List<Ad> ads = mongoTemplate.find(query, Ad.class);
-        int length = ads.size();
 
         // swap n randomly picked elements to the end of the list
-        for(int i = length-1; i >= length-n; i--) {
-            Collections.swap(ads, i, (int)(Math.random()*(i+1)));
-        }
+        List<Ad> copy = new ArrayList<>(ads);
+        Collections.shuffle(copy);
 
         // take the last n elements
-        return ads.subList(length-n, length);
+        return copy.subList(0, Math.min(n, copy.size()));
     }
 
     public Page<Ad> findAdsByCategory(String category, int page, int pageSize) {
