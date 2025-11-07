@@ -26,7 +26,7 @@
         <div th:unless="${userId != null}">
             <form class="d-flex" method="post" th:action="@{/login}">
                 <input class="form-control me-2" name="username" placeholder="Benutzernamen eingeben..." required
-                       type="text">
+                       type="text"/>
                 <button class="btn btn-primary" type="submit">Login</button>
             </form>
         </div>

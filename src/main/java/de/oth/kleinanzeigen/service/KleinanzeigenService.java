@@ -4,24 +4,31 @@ import de.oth.kleinanzeigen.model.Ad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.bson.Document;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class KleinanzeigenService {
 
+    // TODO MongoTemplate or MongoRepository ??
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public List<Ad> findRandomAds(int count) {
-        // TODO make it really random -> sample?
+    public List<Ad> findRandomAds(int n) {
         BasicQuery query = new BasicQuery("{}", "{}");
-        query.limit(count);
-        return mongoTemplate.find(query, Ad.class);
+        List<Ad> ads = mongoTemplate.find(query, Ad.class);
+        int length = ads.size();
+
+        // swap n randomly picked elements to the end of the list
+        for(int i = length-1; i >= length-n; i--) {
+            Collections.swap(ads, i, (int)(Math.random()*(i+1)));
+        }
+
+        // take the last n elements
+        return ads.subList(length-n, length);
     }
 
     public Page<Ad> findAdsByCategory(String category, int page, int pageSize) {
@@ -33,7 +40,7 @@ public class KleinanzeigenService {
     }
 
     public Page<Ad> findAds(String searchTitle, String category, int page, int pageSize) {
-        // TODO use Query and Criteria to prevent SQL-Injection
+        // TODO use Query and Criteria to prevent SQL-Injection ??
         if(searchTitle == null) searchTitle = ".*";
         if(category == null) category = ".*";
         String queryStr = String.format(

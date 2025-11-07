@@ -1,7 +1,6 @@
 package de.oth.kleinanzeigen.controller;
 
 import de.oth.kleinanzeigen.model.Ad;
-import de.oth.kleinanzeigen.model.Comment;
 import de.oth.kleinanzeigen.service.KleinanzeigenService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -9,9 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 

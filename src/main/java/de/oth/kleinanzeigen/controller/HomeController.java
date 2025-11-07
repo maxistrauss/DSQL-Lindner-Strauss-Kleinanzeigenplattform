@@ -1,22 +1,15 @@
 package de.oth.kleinanzeigen.controller;
 
 import de.oth.kleinanzeigen.model.Ad;
-import de.oth.kleinanzeigen.model.Seller;
-import de.oth.kleinanzeigen.repository.AdRepository;
 import de.oth.kleinanzeigen.service.KleinanzeigenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.LinkedList;
 import java.util.List;
 
 @Controller
