@@ -6,32 +6,61 @@
     "price": 120.0,
     "category": "Fahrräder",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Max Mustermann",
-      "email": "max.mustermann@example.com",
-      "phone": "0123456789"
+      "username": "Max.Mustermann",
+      "phoneNumber": "0123456789"
     },
     "comments": [
       {
         "author": "Interessent",
         "content": "Ist das Fahrrad noch zu haben?",
         "date": "2025-11-08T10:00:00.000Z"
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-12-11T00:00:00Z",
+        "userId": "Tom",
+        "text": "Würde ich sofort nehmen."
+      },
+      {
+        "rating": 4,
+        "createdAt": "2025-12-11T00:00:00Z",
+        "userId": "Maria",
+        "text": "Ist der Artikel noch verfügbar?"
+      },
+      {
+        "rating": 3,
+        "createdAt": "2025-12-11T00:00:00Z",
+        "userId": "Alex",
+        "text": "Könnte man am Preis noch was machen?"
       }
-    ]
+    ],
+    "publishedAt": "2025-12-11T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
     "title": "Sofa zu verschenken",
     "description": "Großes Sofa, 3-Sitzer, an Selbstabholer zu verschenken.",
-    "price": 0.0,
+    "price": "0.0",
     "category": "Möbel",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Erika Mustermann",
-      "email": "erika.mustermann@example.com",
-      "phone": "0987654321"
+      "username": "Erika.Mustermann",
+      "phoneNumber": "0987654321"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 2,
+        "createdAt": "2025-04-08T00:00:00Z",
+        "userId": "Julia",
+        "text": "Leider schon weg."
+      },
+      {
+        "rating": 4,
+        "createdAt": "2025-05-11T00:00:00Z",
+        "userId": "Maria",
+        "text": "Ist der Artikel noch verfügbar?"
+      }
+    ],
+    "publishedAt": "2025-02-06T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -40,12 +69,30 @@
     "price": 150.0,
     "category": "Autoteile",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Klaus Kleber",
-      "email": "klaus.kleber@example.com",
-      "phone": "0111223344"
+      "username": "Klaus.Kleber",
+      "phoneNumber": "0111223344"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 3,
+        "createdAt": "2025-12-22T00:00:00Z",
+        "userId": "Alex",
+        "text": "Könnte man am Preis noch was machen?"
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-12-22T00:00:00Z",
+        "userId": "Sarah",
+        "text": "Alles bestens, gerne wieder."
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-12-22T00:00:00Z",
+        "userId": "Tom",
+        "text": "Würde ich sofort nehmen."
+      }
+    ],
+    "publishedAt": "2025-12-22T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -54,12 +101,24 @@
     "price": 50.0,
     "category": "Bücher",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Anna Schmidt",
-      "email": "anna.schmidt@example.com",
-      "phone": "0222334455"
+      "username": "Anna.Schmidt",
+      "phoneNumber": "0222334455"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 5,
+        "createdAt": "2025-09-26T00:00:00Z",
+        "userId": "Tom",
+        "text": "Würde ich sofort nehmen."
+      },
+      {
+        "rating": 2,
+        "createdAt": "2025-03-07T00:00:00Z",
+        "userId": "Julia",
+        "text": "Leider schon weg."
+      }
+    ],
+    "publishedAt": "2025-03-05T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -68,12 +127,24 @@
     "price": 250.0,
     "category": "Haushaltsgeräte",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Peter Pan",
-      "email": "peter.pan@example.com",
-      "phone": "0333445566"
+      "username": "Peter.Pan",
+      "phoneNumber": "0333445566"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 5,
+        "createdAt": "2025-12-14T00:00:00Z",
+        "userId": "Sarah",
+        "text": "Alles bestens, gerne wieder."
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-12-14T00:00:00Z",
+        "userId": "David",
+        "text": "Sehr freundlicher Kontakt."
+      }
+    ],
+    "publishedAt": "2025-12-14T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -82,12 +153,11 @@
     "price": 80.0,
     "category": "Musikinstrumente",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Lisa Lauter",
-      "email": "lisa.lauter@example.com",
-      "phone": "0444556677"
+      "username": "Lisa.Lauter",
+      "phoneNumber": "0444556677"
     },
-    "comments": []
+    "comments": [],
+    "publishedAt": "2025-01-02T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -96,12 +166,11 @@
     "price": 200.0,
     "category": "Elektronik",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Tom Turbo",
-      "email": "tom.turbo@example.com",
-      "phone": "0555667788"
+      "username": "Tom.Turbo",
+      "phoneNumber": "0555667788"
     },
-    "comments": []
+    "comments": [],
+    "publishedAt": "2025-10-30T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -110,12 +179,24 @@
     "price": 300.0,
     "category": "Möbel",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Familie Meier",
-      "email": "familie.meier@example.com",
-      "phone": "0666778899"
+      "username": "Familie.Meier",
+      "phoneNumber": "0666778899"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 3,
+        "createdAt": "2025-06-22T00:00:00Z",
+        "userId": "Alex",
+        "text": "Könnte man am Preis noch was machen?"
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-08-21T00:00:00Z",
+        "userId": "Chris",
+        "text": "Super Angebot!"
+      }
+    ],
+    "publishedAt": "2025-05-26T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -124,12 +205,30 @@
     "price": 450.0,
     "category": "Fahrräder",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Sporty Spice",
-      "email": "sporty.spice@example.com",
-      "phone": "0777889900"
+      "username": "Sporty.Spice",
+      "phoneNumber": "0777889900"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 5,
+        "createdAt": "2025-08-12T00:00:00Z",
+        "userId": "Ben",
+        "text": "Top Zustand, danke!"
+      },
+      {
+        "rating": 2,
+        "createdAt": "2025-02-20T00:00:00Z",
+        "userId": "Julia",
+        "text": "Leider schon weg."
+      },
+      {
+        "rating": 1,
+        "createdAt": "2025-06-21T00:00:00Z",
+        "userId": "Mike",
+        "text": "Antwortet leider nicht."
+      }
+    ],
+    "publishedAt": "2025-01-14T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -138,12 +237,11 @@
     "price": 100.0,
     "category": "Haushaltsgeräte",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Sauber Mann",
-      "email": "sauber.mann@example.com",
-      "phone": "0888990011"
+      "username": "Sauber.Mann",
+      "phoneNumber": "0888990011"
     },
-    "comments": []
+    "comments": [],
+    "publishedAt": "2025-04-12T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -152,12 +250,18 @@
     "price": 500.0,
     "category": "Elektronik",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Heim Kino",
-      "email": "heim.kino@example.com",
-      "phone": "0999001122"
+      "username": "Heim.Kino",
+      "phoneNumber": "0999001122"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 5,
+        "createdAt": "2025-09-26T00:00:00Z",
+        "userId": "Chris",
+        "text": "Super Angebot!"
+      }
+    ],
+    "publishedAt": "2025-08-08T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -166,12 +270,18 @@
     "price": 70.0,
     "category": "Möbel",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Büro Hengst",
-      "email": "buero.hengst@example.com",
-      "phone": "0112233445"
+      "username": "Büro.Hengst",
+      "phoneNumber": "0112233445"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 5,
+        "createdAt": "2025-12-16T00:00:00Z",
+        "userId": "Sarah",
+        "text": "Alles bestens, gerne wieder."
+      }
+    ],
+    "publishedAt": "2025-12-16T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -180,12 +290,18 @@
     "price": 180.0,
     "category": "Baby & Kind",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Junge Familie",
-      "email": "junge.familie@example.com",
-      "phone": "0223344556"
+      "username": "Junge.Familie",
+      "phoneNumber": "0223344556"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 3,
+        "createdAt": "2025-08-27T00:00:00Z",
+        "userId": "Alex",
+        "text": "Könnte man am Preis noch was machen?"
+      }
+    ],
+    "publishedAt": "2025-06-04T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -194,12 +310,30 @@
     "price": 40.0,
     "category": "Garten",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Garten Freund",
-      "email": "garten.freund@example.com",
-      "phone": "0334455667"
+      "username": "Garten.Freund",
+      "phoneNumber": "0334455667"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 4,
+        "createdAt": "2025-09-22T00:00:00Z",
+        "userId": "Laura",
+        "text": "Versand möglich?"
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-09-16T00:00:00Z",
+        "userId": "David",
+        "text": "Sehr freundlicher Kontakt."
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-10-10T00:00:00Z",
+        "userId": "David",
+        "text": "Sehr freundlicher Kontakt."
+      }
+    ],
+    "publishedAt": "2025-09-11T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -208,12 +342,30 @@
     "price": 350.0,
     "category": "Elektronik",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Foto Graf",
-      "email": "foto.graf@example.com",
-      "phone": "0445566778"
+      "username": "Foto.Graf",
+      "phoneNumber": "0445566778"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 5,
+        "createdAt": "2025-08-30T00:00:00Z",
+        "userId": "Ben",
+        "text": "Top Zustand, danke!"
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-08-20T00:00:00Z",
+        "userId": "Chris",
+        "text": "Super Angebot!"
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-08-30T00:00:00Z",
+        "userId": "Ben",
+        "text": "Top Zustand, danke!"
+      }
+    ],
+    "publishedAt": "2025-08-12T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -222,12 +374,30 @@
     "price": 150.0,
     "category": "Möbel",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Stauraum Wunder",
-      "email": "stauraum.wunder@example.com",
-      "phone": "0556677889"
+      "username": "Stauraum.Wunder",
+      "phoneNumber": "0556677889"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 2,
+        "createdAt": "2025-10-25T00:00:00Z",
+        "userId": "Julia",
+        "text": "Leider schon weg."
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-11-08T00:00:00Z",
+        "userId": "Sarah",
+        "text": "Alles bestens, gerne wieder."
+      },
+      {
+        "rating": 5,
+        "createdAt": "2025-10-24T00:00:00Z",
+        "userId": "David",
+        "text": "Sehr freundlicher Kontakt."
+      }
+    ],
+    "publishedAt": "2025-10-14T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -236,12 +406,18 @@
     "price": 60.0,
     "category": "Sport & Freizeit",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Läufer Ass",
-      "email": "laeufer.ass@example.com",
-      "phone": "0667788990"
+      "username": "Läufer.Ass",
+      "phoneNumber": "0667788990"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 3,
+        "createdAt": "2025-09-04T00:00:00Z",
+        "userId": "Alex",
+        "text": "Könnte man am Preis noch was machen?"
+      }
+    ],
+    "publishedAt": "2025-03-11T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -250,12 +426,24 @@
     "price": 30.0,
     "category": "Haushaltsgeräte",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Schnell Koch",
-      "email": "schnell.koch@example.com",
-      "phone": "0778899001"
+      "username": "Schnell.Koch",
+      "phoneNumber": "0778899001"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 1,
+        "createdAt": "2025-07-31T00:00:00Z",
+        "userId": "Mike",
+        "text": "Antwortet leider nicht."
+      },
+      {
+        "rating": 3,
+        "createdAt": "2025-10-24T00:00:00Z",
+        "userId": "Alex",
+        "text": "Könnte man am Preis noch was machen?"
+      }
+    ],
+    "publishedAt": "2025-03-14T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -264,12 +452,11 @@
     "price": 50.0,
     "category": "Elektronik",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Drucker Patron",
-      "email": "drucker.patron@example.com",
-      "phone": "0889900112"
+      "username": "Drucker.Patron",
+      "phoneNumber": "0889900112"
     },
-    "comments": []
+    "comments": [],
+    "publishedAt": "2025-01-16T00:00:00Z"
   },
   {
     "_class": "de.oth.kleinanzeigen.model.Ad",
@@ -278,11 +465,23 @@
     "price": 20.0,
     "category": "Möbel",
     "seller": {
-      "_class": "de.oth.kleinanzeigen.model.Seller",
-      "name": "Bücher Wurm",
-      "email": "buecher.wurm@example.com",
-      "phone": "0990011223"
+      "username": "Bücher.Wurm",
+      "phoneNumber": "0990011223"
     },
-    "comments": []
+    "comments": [
+      {
+        "rating": 3,
+        "createdAt": "2025-08-08T00:00:00Z",
+        "userId": "Alex",
+        "text": "Könnte man am Preis noch was machen?"
+      },
+      {
+        "rating": 4,
+        "createdAt": "2025-07-28T00:00:00Z",
+        "userId": "Maria",
+        "text": "Ist der Artikel noch verfügbar?"
+      }
+    ],
+    "publishedAt": "2025-07-04T00:00:00Z"
   }
 ]

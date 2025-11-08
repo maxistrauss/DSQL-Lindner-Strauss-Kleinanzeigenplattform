@@ -49,32 +49,28 @@ Das Projekt ist logisch und übersichtlich strukturiert, um die Wartbarkeit und 
 
 ## Installation der Anwendung
 
-1. **Klonen Sie das Repository:**
-   ```bash
-   git clone https://your-repository-url.git
-   ```
-2. **Navigieren Sie in das Projektverzeichnis:**
-   ```bash
-   cd Kleinanzeigen
-   ```
-3. **Erstellen Sie das Projekt mit Gradle:**
+1**Erstelle das Projekt mit Gradle:**
    ```bash
    ./gradlew build
    ```
-4. **Führen Sie die Anwendung aus:**
+
+2**Verschiebe die JAR-Datei via FTP**
+
+1**Starte das Projekt:**
    ```bash
-   ./gradlew bootRun
+   sudo java -jar Kleinanzeigen-0.0.1-SNAPSHOT.jar
    ```
+
    Die Anwendung ist nun unter `http://localhost:80` erreichbar.
 
 ## Datenbank-Einrichtung (MongoDB)
 
 Die Anwendung erfordert eine laufende MongoDB-Instanz. Hier ist eine detaillierte Anleitung zur Installation und
-Konfiguration von MongoDB auf einem Debian-basierten System (z.B. Ubuntu).
+Konfiguration von MongoDB auf einem Debian-basierten System.
 
 ### 1. MongoDB Installieren
 
-a. **Importieren Sie den öffentlichen GPG-Schlüssel von MongoDB:**
+a. **Importiere den öffentlichen GPG-Schlüssel von MongoDB:**
 
    ```bash
    sudo apt-get install gnupg curl
@@ -83,48 +79,39 @@ a. **Importieren Sie den öffentlichen GPG-Schlüssel von MongoDB:**
       --dearmor
    ```
 
-b. **Erstellen Sie eine Listen-Datei für MongoDB:**
+b. **Erstelle eine Listen-Datei für MongoDB:**
 
    ```bash
    echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
    ```
 
-c. **Laden Sie die Paketdatenbank neu:**
+c. **Lade die Paketdatenbank neu:**
 
    ```bash
    sudo apt-get update
    ```
 
-d. **Installieren Sie die MongoDB-Pakete:**
+d. **Installiere die MongoDB-Pakete:**
 
    ```bash
    sudo apt-get install -y mongodb-org
    ```
 
-e. **Starten Sie den MongoDB-Dienst:**
+e. **Starte den MongoDB-Dienst:**
 
    ```bash
    sudo systemctl start mongod
    ```
 
-f. **Überprüfen Sie den Status des Dienstes:**
-
-   ```bash
-   sudo systemctl status mongod
-   ```
-
 ### 2. MongoDB Konfigurieren
 
-a. **Verbinden Sie sich mit der MongoDB-Shell:**
+a. **Verbindung mit der MongoDB-Shell:**
 
    ```bash
-   mongo
+   ./mongosh
    ```
 
-b. **Erstellen Sie einen administrativen Benutzer:**
-Führen Sie die folgenden Befehle in der `mongo`-Shell aus, um einen Benutzer mit administrativen Rechten zu erstellen.
-Ersetzen Sie `webService` und `!secure_PWD!` durch Ihre gewünschten Anmeldeinformationen.
-
+b. **Erstellung eines administrativen Benutzers:**
    ```javascript
    use
 admin
@@ -137,30 +124,24 @@ db.createUser(
 )
    ```
 
-c. **Aktivieren Sie die Authentifizierung:**
-Öffnen Sie die MongoDB-Konfigurationsdatei in einem Texteditor:
+c. **Aktivieren der Authentifizierung:**
 
    ```bash
    sudo nano /etc/mongod.conf
    ```
-
-Fügen Sie die folgende `security`-Sektion hinzu oder kommentieren Sie sie aus, um die Authentifizierung zu aktivieren:
 
    ```yaml
    security:
      authorization: enabled
    ```
 
-d. **Starten Sie den MongoDB-Dienst neu:**
+d. **Starte den MongoDB-Dienst neu:**
 
    ```bash
    sudo systemctl restart mongod
    ```
 
 ### 3. Anwendungskonfiguration
-
-Stellen Sie sicher, dass die `application.properties`-Datei in `src/main/resources/` die korrekten Anmeldeinformationen
-für die Datenbank enthält:
 
 ```properties
 spring.data.mongodb.host=localhost
@@ -173,24 +154,13 @@ spring.data.mongodb.password=!secure_PWD!
 
 ## Beispieldaten importieren
 
-Um die Anwendung mit Beispieldaten zu füllen, können Sie die bereitgestellte `beispieldaten.json`-Datei verwenden. Diese
+Um die Anwendung mit Beispieldaten zu füllen, können die bereitgestellte `beispieldaten.json`-Datei verwendet werden.
+Diese
 Datei enthält einige Beispielanzeigen, die in die Datenbank importiert werden können.
 
-Führen Sie den folgenden Befehl im Hauptverzeichnis des Projekts aus, um die Daten zu importieren:
-
 ```bash
-mongoimport --username webService --password !secure_PWD! --authenticationDatabase admin --db kleinanzeigen --collection ad --file beispieldaten.json --jsonArray
+mongoimport --username webService --password !secure_PWD! --authenticationDatabase admin --db kleinanzeigen_db --collection ads --file beispieldaten.json --jsonArray
 ```
-
-**Erklärung der Befehlsoptionen:**
-
-* `--username webService`: Der Benutzername für die MongoDB-Authentifizierung.
-* `--password !secure_PWD!`: Das Passwort für die MongoDB-Authentifizierung.
-* `--authenticationDatabase admin`: Die Datenbank, in der der Benutzer authentifiziert wird.
-* `--db kleinanzeigen`: Die Zieldatenbank, in die die Daten importiert werden sollen.
-* `--collection ad`: Die Ziel-Collection innerhalb der Datenbank.
-* `--file beispieldaten.json`: Der Pfad zur JSON-Datei mit den Beispieldaten.
-* `--jsonArray`: Gibt an, dass die JSON-Datei ein Array von Dokumenten enthält.
 
 ## Screenshot
 

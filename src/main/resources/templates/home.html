@@ -52,7 +52,10 @@
     <section>
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2>Kategorien</h2>
-            <small class="text-muted">Anzahl: <span th:text="${categoryCount}">0</span></small>
+            <div>
+                <small class="text-muted me-3">Anzeigen gesamt: <span th:text="${adCount}">0</span></small>
+                <small class="text-muted">Anzahl Kategorien: <span th:text="${categoryCount}">0</span></small>
+            </div>
         </div>
 
         <div class="row g-3">

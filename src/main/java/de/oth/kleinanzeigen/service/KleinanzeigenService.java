@@ -71,4 +71,8 @@ public class KleinanzeigenService {
         BasicQuery query = new BasicQuery(String.format("{category: '%s'}", category), "{}");
         return !mongoTemplate.find(query, Ad.class).isEmpty();
     }
+
+    public long countAllAds() {
+        return mongoTemplate.count(new BasicQuery("{}"), Ad.class);
+    }
 }

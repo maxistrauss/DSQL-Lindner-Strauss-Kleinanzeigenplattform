@@ -21,13 +21,11 @@ public class Ad {
     private List<Comment> comments;
     private String imageId;
 
-    private String creatorId; // To identify the user who created the ad
-
     public Ad() {
     }
 
-    public Ad(String title, String description, String category, BigDecimal price, Instant publishedAt,
-            Seller seller, List<Comment> comments, String imageId, String creatorId) {
+    public Ad(String title, String description, String category, BigDecimal price, Instant publishedAt, Seller seller,
+            List<Comment> comments, String imageId) {
         this.title = title;
         this.description = description;
         this.category = category;
@@ -36,18 +34,9 @@ public class Ad {
         this.seller = seller;
         this.comments = comments;
         this.imageId = imageId;
-        this.creatorId = creatorId;
     }
 
     // Getters and Setters
-
-    public String getCreatorId() {
-        return creatorId;
-    }
-
-    public void setCreatorId(String creatorId) {
-        this.creatorId = creatorId;
-    }
 
     public String getId() {
         return id;

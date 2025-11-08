@@ -42,9 +42,8 @@ public class DatabaseInitializer implements CommandLineRunner {
         comment.setCreatedAt(LocalDateTime.now().minusDays(1));
 
         Ad sampleAd = new Ad("Gebrauchtes Fahrrad", "Gut erhaltenes Herrenrad, 28 Zoll, 7 Gänge. Kaum gefahren.",
-                "Fahrräder", new BigDecimal("150.00"), Instant.now().minusSeconds(60*60*24*3), seller, List.of(comment), null,
-                // imageId
-                seller.getUsername());
+                "Fahrräder", new BigDecimal("150.00"), Instant.now().minusSeconds(60 * 60 * 24 * 3), seller,
+                List.of(comment), null);
 
         adRepository.save(sampleAd);
         System.out.println("Saved sample ad: " + sampleAd);

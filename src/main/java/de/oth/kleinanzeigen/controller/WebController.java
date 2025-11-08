@@ -48,7 +48,6 @@ public class WebController {
         if (userId == null) {
             return "redirect:/"; // Should not happen if form is protected
         }
-        ad.setCreatorId(userId);
         ad.setPublishedAt(Instant.now());
 
         Seller seller = new Seller();
@@ -81,7 +80,7 @@ public class WebController {
                 ad.getComments().sort(Comparator.comparing(Comment::getCreatedAt).reversed());
             }
             model.addAttribute("ad", ad);
-            model.addAttribute("isOwner", userId != null && userId.equals(ad.getCreatorId()));
+            model.addAttribute("isOwner", userId != null && userId.equals(ad.getSeller().getUsername()));
             model.addAttribute("userId", userId); // Add userId to the model
             return "ad-details";
         } else {
@@ -130,7 +129,7 @@ public class WebController {
         Optional<Ad> adOptional = adRepository.findById(id);
         if (adOptional.isPresent()) {
             Ad ad = adOptional.get();
-            if (userId != null && userId.equals(ad.getCreatorId())) {
+            if (userId != null && userId.equals(ad.getSeller().getUsername())) {
                 model.addAttribute("ad", ad);
                 return "ad-edit";
             }
@@ -144,7 +143,7 @@ public class WebController {
         Optional<Ad> adOptional = adRepository.findById(id);
         if (adOptional.isPresent()) {
             Ad ad = adOptional.get();
-            if (userId != null && userId.equals(ad.getCreatorId())) {
+            if (userId != null && userId.equals(ad.getSeller().getUsername())) {
                 ad.setTitle(adData.getTitle());
                 ad.setDescription(adData.getDescription());
                 ad.setPrice(adData.getPrice());
@@ -167,7 +166,7 @@ public class WebController {
         Optional<Ad> adOptional = adRepository.findById(id);
         if (adOptional.isPresent()) {
             Ad ad = adOptional.get();
-            if (userId != null && userId.equals(ad.getCreatorId())) {
+            if (userId != null && userId.equals(ad.getSeller().getUsername())) {
                 adRepository.deleteById(id);
             }
         }
