@@ -1,0 +1,288 @@
+[
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Gebrauchtes Fahrrad",
+    "description": "Gut erhaltenes Herrenrad, 28 Zoll, 3 Gänge.",
+    "price": 120.0,
+    "category": "Fahrräder",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Max Mustermann",
+      "email": "max.mustermann@example.com",
+      "phone": "0123456789"
+    },
+    "comments": [
+      {
+        "author": "Interessent",
+        "content": "Ist das Fahrrad noch zu haben?",
+        "date": "2025-11-08T10:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Sofa zu verschenken",
+    "description": "Großes Sofa, 3-Sitzer, an Selbstabholer zu verschenken.",
+    "price": 0.0,
+    "category": "Möbel",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Erika Mustermann",
+      "email": "erika.mustermann@example.com",
+      "phone": "0987654321"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Winterreifen",
+    "description": "Vier Winterreifen auf Stahlfelge, eine Saison gefahren.",
+    "price": 150.0,
+    "category": "Autoteile",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Klaus Kleber",
+      "email": "klaus.kleber@example.com",
+      "phone": "0111223344"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Lehrbücher für das Studium",
+    "description": "Diverse Lehrbücher für das Fach Informatik, neuwertig.",
+    "price": 50.0,
+    "category": "Bücher",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Anna Schmidt",
+      "email": "anna.schmidt@example.com",
+      "phone": "0222334455"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Kaffeemaschine",
+    "description": "Vollautomatische Kaffeemaschine von De'Longhi, voll funktionsfähig.",
+    "price": 250.0,
+    "category": "Haushaltsgeräte",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Peter Pan",
+      "email": "peter.pan@example.com",
+      "phone": "0333445566"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Gitarre",
+    "description": "Akustische Gitarre von Yamaha, inklusive Tasche.",
+    "price": 80.0,
+    "category": "Musikinstrumente",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Lisa Lauter",
+      "email": "lisa.lauter@example.com",
+      "phone": "0444556677"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Playstation 4",
+    "description": "PS4 mit zwei Controllern und fünf Spielen.",
+    "price": 200.0,
+    "category": "Elektronik",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Tom Turbo",
+      "email": "tom.turbo@example.com",
+      "phone": "0555667788"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Esstisch mit Stühlen",
+    "description": "Massiver Holztisch mit sechs Stühlen.",
+    "price": 300.0,
+    "category": "Möbel",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Familie Meier",
+      "email": "familie.meier@example.com",
+      "phone": "0666778899"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Mountainbike",
+    "description": "Vollgefedertes Mountainbike, 26 Zoll, 21 Gänge.",
+    "price": 450.0,
+    "category": "Fahrräder",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Sporty Spice",
+      "email": "sporty.spice@example.com",
+      "phone": "0777889900"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Waschmaschine",
+    "description": "Toplader von Siemens, 5kg Fassungsvermögen.",
+    "price": 100.0,
+    "category": "Haushaltsgeräte",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Sauber Mann",
+      "email": "sauber.mann@example.com",
+      "phone": "0888990011"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Fernseher",
+    "description": "4K-Fernseher von Samsung, 55 Zoll.",
+    "price": 500.0,
+    "category": "Elektronik",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Heim Kino",
+      "email": "heim.kino@example.com",
+      "phone": "0999001122"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Schreibtisch",
+    "description": "Moderner Schreibtisch in weiß, 120x60cm.",
+    "price": 70.0,
+    "category": "Möbel",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Büro Hengst",
+      "email": "buero.hengst@example.com",
+      "phone": "0112233445"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Kinderwagen",
+    "description": "Kombikinderwagen von ABC Design, mit Babyschale.",
+    "price": 180.0,
+    "category": "Baby & Kind",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Junge Familie",
+      "email": "junge.familie@example.com",
+      "phone": "0223344556"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Rasenmäher",
+    "description": "Elektrorasenmäher von Bosch, schnittbreite 32cm.",
+    "price": 40.0,
+    "category": "Garten",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Garten Freund",
+      "email": "garten.freund@example.com",
+      "phone": "0334455667"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Spiegelreflexkamera",
+    "description": "Canon EOS 700D mit Kit-Objektiv.",
+    "price": 350.0,
+    "category": "Elektronik",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Foto Graf",
+      "email": "foto.graf@example.com",
+      "phone": "0445566778"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Kleiderschrank",
+    "description": "Großer Kleiderschrank, 3-türig, mit Spiegel.",
+    "price": 150.0,
+    "category": "Möbel",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Stauraum Wunder",
+      "email": "stauraum.wunder@example.com",
+      "phone": "0556677889"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Laufschuhe",
+    "description": "Asics Laufschuhe, Größe 43, kaum getragen.",
+    "price": 60.0,
+    "category": "Sport & Freizeit",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Läufer Ass",
+      "email": "laeufer.ass@example.com",
+      "phone": "0667788990"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Mikrowelle",
+    "description": "Mikrowelle mit Grillfunktion von Sharp.",
+    "price": 30.0,
+    "category": "Haushaltsgeräte",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Schnell Koch",
+      "email": "schnell.koch@example.com",
+      "phone": "0778899001"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Drucker",
+    "description": "HP-Multifunktionsdrucker, drucken, scannen, kopieren.",
+    "price": 50.0,
+    "category": "Elektronik",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Drucker Patron",
+      "email": "drucker.patron@example.com",
+      "phone": "0889900112"
+    },
+    "comments": []
+  },
+  {
+    "_class": "de.oth.kleinanzeigen.model.Ad",
+    "title": "Bücherregal",
+    "description": "Billy-Regal von IKEA, Buche, 80x202cm.",
+    "price": 20.0,
+    "category": "Möbel",
+    "seller": {
+      "_class": "de.oth.kleinanzeigen.model.Seller",
+      "name": "Bücher Wurm",
+      "email": "buecher.wurm@example.com",
+      "phone": "0990011223"
+    },
+    "comments": []
+  }
+]
