@@ -164,4 +164,4 @@ mongoimport --username webService --password !secure_PWD! --authenticationDataba
 
 ## Screenshot
 
-![Screenshot der Anwendung](placeholder.png)
+![Screenshot der Anwendung](img.png)
