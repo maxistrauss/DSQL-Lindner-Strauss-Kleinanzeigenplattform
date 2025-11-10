@@ -26,9 +26,9 @@
             <h1 th:text="${ad.title}">Anzeigentitel</h1>
             <hr/>
             <img alt="Anzeigenbild" class="img-fluid rounded mb-3" th:if="${ad.imageId != null}"
-                 th:src="@{'/images/' + ${ad.imageId}}"/>
+                 th:src="@{'/images/' + ${ad.imageId}}" style="height:500px; object-fit:cover;"/>
             <img alt="Kein Bild verfügbar" class="img-fluid rounded mb-3" th:if="${ad.imageId == null}"
-                 th:src="@{/images/placeholder.png}"/>
+                 th:src="@{/images/placeholder.png}" style="height:500px; object-fit:cover;"/>
             <h4>Beschreibung</h4>
             <p th:text="${ad.description}">Hier steht die ausführliche Beschreibung der Anzeige.</p>
         </div>
@@ -39,7 +39,7 @@
                 <div class="card-body">
                     <h4 class="card-title">Preis</h4>
                     <p class="fs-3 fw-bold"
-                       th:text="${#numbers.formatDecimal(ad.price, 0, 'COMMA', 2, 'POINT')} + ' €'">Preis</p>
+                       th:text="${#numbers.formatDecimal(ad.price, 1, 'COMMA', 2, 'POINT')} + ' €'">Preis</p>
                     <hr/>
                     <h4>Verkäufer</h4>
                     <p th:if="${ad.seller != null}">

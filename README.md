@@ -6,9 +6,9 @@ benutzerfreundliche Erfahrung für das Kaufen und Verkaufen von Artikeln zu biet
 
 ## Features
 
-* **Anzeigenverwaltung:** Benutzer können Anzeigen mit Titel, Beschreibung, Preis und Bildern erstellen. Bestehende
-  Anzeigen können jederzeit bearbeitet oder gelöscht werden.
-* **Kategorisierung:** Um die Übersichtlichkeit zu wahren, werden alle Anzeigen in vordefinierten Kategorien eingeteilt.
+* **Anzeigenverwaltung:** Benutzer können Anzeigen mit Titel, Beschreibung, Preis, Kategorie und Bildern erstellen.
+  Bestehende Anzeigen können jederzeit bearbeitet oder gelöscht werden.
+* **Kategorisierung:** Um die Übersichtlichkeit zu wahren, werden können Anzeigen in Kategorien eingeteilt.
   Dies erleichtert das gezielte Suchen und Finden von Artikeln.
 * **Bild-Upload:** Ein Bild sagt mehr als tausend Worte. Benutzer können Bilder zu ihren Anzeigen hochladen, um
   potenziellen Käufern einen besseren Eindruck vom Artikel zu vermitteln.
@@ -20,7 +20,7 @@ benutzerfreundliche Erfahrung für das Kaufen und Verkaufen von Artikeln zu biet
 ## Verwendete Technologien
 
 * **Backend:**
-    * **Java 21:** Die Anwendung ist in der neuesten Version von Java geschrieben.
+    * **Java 21:** Die Anwendung ist in der neuesten LTS Version von Java geschrieben.
     * **Spring Boot 3.5.7:** Das robuste Framework für die schnelle Entwicklung von Web-Anwendungen.
     * **Spring Data MongoDB:** Für die nahtlose Integration und Interaktion mit der MongoDB-Datenbank.
 * **Frontend:**
@@ -56,7 +56,7 @@ Das Projekt ist logisch und übersichtlich strukturiert, um die Wartbarkeit und 
 
 2**Verschiebe die JAR-Datei via FTP**
 
-1**Starte das Projekt:**
+3**Starte das Projekt:**
    ```bash
    sudo java -jar Kleinanzeigen-0.0.1-SNAPSHOT.jar
    ```
@@ -71,7 +71,7 @@ Konfiguration von MongoDB auf einem Debian-basierten System.
 ### 1. MongoDB Installieren
 
 a. **Importiere den öffentlichen GPG-Schlüssel von MongoDB:**
-
+# TODO !!
    ```bash
    sudo apt-get install gnupg curl
    curl -fsSL https://pgp.mongodb.com/server-6.0.asc | \
@@ -145,7 +145,7 @@ d. **Starte den MongoDB-Dienst neu:**
 
 ```properties
 spring.data.mongodb.host=localhost
-spring.data.mongodb.port=27017
+spring.data.mongodb.port=27017~~~~
 spring.data.mongodb.authentication-database=admin
 spring.data.mongodb.database=kleinanzeigen_db
 spring.data.mongodb.username=webService
@@ -159,7 +159,9 @@ Diese
 Datei enthält einige Beispielanzeigen, die in die Datenbank importiert werden können.
 
 ```bash
-mongoimport --username webService --password !secure_PWD! --authenticationDatabase admin --db kleinanzeigen_db --collection ads --file beispieldaten.json --jsonArray
+mongoimport --username webService --password '!secure_PWD!' --authenticationDatabase admin --db kleinanzeigen_db --collection ads --file beispieldaten_ads.json --jsonArray
+mongoimport --username webService --password '!secure_PWD!' --authenticationDatabase admin --db kleinanzeigen_db --collection fs.files --file beispieldaten_fs_files.json --jsonArray
+mongoimport --username webService --password '!secure_PWD!' --authenticationDatabase admin --db kleinanzeigen_db --collection fs.chunks --file beispieldaten_fs_chunks.json --jsonArray
 ```
 
 ## Screenshot
