@@ -9,12 +9,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
 <body>
-<!-- NAV -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container">
-        <a class="navbar-brand" href="/">Kleinanzeigen</a>
-    </div>
-</nav>
+<!-- navbar -->
+<div th:replace="~{fragments/navbar :: navbar(${null})}"></div>
 
 <main class="container my-4">
     <h2>Anzeige bearbeiten</h2>

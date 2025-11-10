@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
-<div th:fragment="ad-card(ad)" class="card h-100">
+<div th:fragment="ad-card(ad)" class="card h-100" style="width: 100%;">
     <a th:href="@{'/ads/' + ${ad.id}}" class="card-img-top" style="height:180px; object-fit:cover;">
         <img alt="Vorschaubild" class="card-img-top" style="height:180px; object-fit:cover;"
              th:if="${ad.imageId != null}" th:src="@{'/images/' + ${ad.imageId}}">

@@ -12,12 +12,8 @@
     <link rel="stylesheet" th:href="@{/css/styles.css}"/>
 </head>
 <body>
-<!-- NAV -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container">
-        <a class="navbar-brand" href="/">Kleinanzeigen</a>
-    </div>
-</nav>
+<!-- navbar -->
+<div th:replace="~{fragments/navbar :: navbar(${null})}"></div>
 
 <main class="container my-4">
     <div class="row">

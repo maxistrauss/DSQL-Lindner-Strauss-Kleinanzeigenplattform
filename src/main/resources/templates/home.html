@@ -17,21 +17,6 @@
 
 <main class="container my-4">
 
-    <!-- User/Login Section -->
-    <section class="mb-4">
-        <div class="alert alert-success" th:if="${userId != null}">
-            Angemeldet als: <strong th:text="${userId}"></strong>
-            <a class="btn btn-sm btn-primary ms-2" th:href="@{/ads/new}">Anzeige erstellen</a>
-            <a class="btn btn-sm btn-outline-danger ms-2" th:href="@{/logout}">Logout</a>
-        </div>
-        <div th:unless="${userId != null}">
-            <form class="d-flex" method="post" th:action="@{/login}">
-                <input class="form-control me-2" name="username" placeholder="Benutzernamen eingeben..." required
-                       type="text"/>
-                <button class="btn btn-primary" type="submit">Login</button>
-            </form>
-        </div>
-    </section>
     <!-- Random ads -->
     <section>
         <div class="d-flex justify-content-between align-items-center mb-3">

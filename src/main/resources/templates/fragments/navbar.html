@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
 <nav th:fragment="navbar(category)" class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container">
+    <div class="container d-flex align-items-center">
         <a class="navbar-brand" href="/">Kleinanzeigen</a>
-        <div class="">
+        <div class="middle-div flex-grow-1 mx-2" style="max-width: 40%;">
             <form class="d-flex ms-auto" action="/search" method="get">
                 <input class="form-control me-2"
                        type="search"
@@ -17,6 +17,21 @@
                        th:value="${category}" />
                 <button class="btn btn-outline-primary" type="submit">Suchen</button>
             </form>
+        </div>
+        <!-- User/Login -->
+        <div>
+            <div class="d-flex align-items-center" th:if="${userId != null}">
+                <span class="border border-success rounded px-2 py-1 bg-success-subtle ms-2">Angemeldet als: <strong th:text="${userId}"></strong></span>
+                <a class="btn btn-sm btn-primary ms-2" th:href="@{/ads/new}">Anzeige erstellen</a>
+                <a class="btn btn-sm btn-outline-danger ms-2" th:href="@{/logout}">Logout</a>
+            </div>
+            <div th:unless="${userId != null}">
+                <form class="d-flex" method="post" th:action="@{/login}">
+                    <input class="form-control me-2" name="username" placeholder="Benutzernamen eingeben..." required
+                           type="text"/>
+                    <button class="btn btn-primary" type="submit">Login</button>
+                </form>
+            </div>
         </div>
     </div>
 </nav>

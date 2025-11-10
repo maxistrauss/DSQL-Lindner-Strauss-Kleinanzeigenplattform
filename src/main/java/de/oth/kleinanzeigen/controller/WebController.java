@@ -6,6 +6,9 @@ import de.oth.kleinanzeigen.model.Seller;
 import de.oth.kleinanzeigen.repository.AdRepository;
 import de.oth.kleinanzeigen.service.GridFsService;
 import de.oth.kleinanzeigen.service.KleinanzeigenService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -39,6 +42,7 @@ public class WebController {
             return "redirect:/"; // Redirect to home to login
         }
         model.addAttribute("ad", new Ad());
+        model.addAttribute("userId", userId); // Add userId to the model
         return "ad-create";
     }
 
@@ -131,6 +135,7 @@ public class WebController {
             Ad ad = adOptional.get();
             if (userId != null && userId.equals(ad.getSeller().getUsername())) {
                 model.addAttribute("ad", ad);
+                model.addAttribute("userId", userId); // Add userId to the model
                 return "ad-edit";
             }
         }
@@ -171,6 +176,36 @@ public class WebController {
             }
         }
         return "redirect:/";
+    }
+
+    @PostMapping("/login")
+    public String login(@RequestParam String username, HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookie = new Cookie("userId", username);
+        cookie.setPath("/");
+        cookie.setMaxAge(3600); // 1 hour
+        response.addCookie(cookie);
+
+        String referer = request.getHeader("Referer");
+        if(referer != null && !referer.isEmpty()){
+            return "redirect:"+referer;
+        } else {
+            return "redirect:/";
+        }
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookie = new Cookie("userId", null);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+
+        String referer = request.getHeader("Referer");
+        if(referer != null && !referer.isEmpty()){
+            return "redirect:"+referer;
+        } else {
+            return "redirect:/";
+        }
     }
 
     @GetMapping("/search")
