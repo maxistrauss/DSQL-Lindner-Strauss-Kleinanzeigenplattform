@@ -55,6 +55,12 @@ Das Projekt ist logisch und übersichtlich strukturiert, um die Wartbarkeit und 
    ```
 
 2**Verschiebe die JAR-Datei via FTP**
+   ```bash
+   sftp nosql@10.127.0.44
+   put "...dsql-lindner-straus-kleinanzeigenplattform\build\libs\Kleinanzeigen-0.0.1-SNAPSHOT.jar"
+   ```
+   
+   REM: Pfad im put-Command unvollständig, da private Verzeichnisse. 
 
 3**Starte das Projekt:**
    ```bash
@@ -140,12 +146,15 @@ d. **Starte den MongoDB-Dienst neu:**
    ```bash
    sudo systemctl restart mongod
    ```
-
-### 3. Anwendungskonfiguration
+### 3. Verbindung mit MongoShell
+   ``` bash
+   mongosh -u "webService" -p --authenticationDatabase "admin"
+   ```
+### 4. Anwendungskonfiguration
 
 ```properties
 spring.data.mongodb.host=localhost
-spring.data.mongodb.port=27017~~~~
+spring.data.mongodb.port=27017
 spring.data.mongodb.authentication-database=admin
 spring.data.mongodb.database=kleinanzeigen_db
 spring.data.mongodb.username=webService
@@ -154,9 +163,9 @@ spring.data.mongodb.password=!secure_PWD!
 
 ## Beispieldaten importieren
 
-Um die Anwendung mit Beispieldaten zu füllen, können die bereitgestellte `beispieldaten.json`-Datei verwendet werden.
+Um die Anwendung mit Beispieldaten zu füllen, können die bereitgestellten `beispieldaten_*.json`-Dateien verwendet werden.
 Diese
-Datei enthält einige Beispielanzeigen, die in die Datenbank importiert werden können.
+Dateien enthalten einige Beispielanzeigen und Bilder, die in die Datenbank importiert werden können.
 
 ```bash
 mongoimport --username webService --password '!secure_PWD!' --authenticationDatabase admin --db kleinanzeigen_db --collection ads --file beispieldaten_ads.json --jsonArray
@@ -164,6 +173,15 @@ mongoimport --username webService --password '!secure_PWD!' --authenticationData
 mongoimport --username webService --password '!secure_PWD!' --authenticationDatabase admin --db kleinanzeigen_db --collection fs.chunks --file beispieldaten_fs_chunks.json --jsonArray
 ```
 
-## Screenshot
-
-![Screenshot der Anwendung](img.png)
+## Screenshots
+### Startseite
+![Screenshot der Startseite](media/home.png)
+### Kategorien
+![Screenshot der Startseite](media/categories.png)
+### Anzeige - Details
+![Screenshot der Startseite](media/ad-details.png)
+### Anzeige - Bearbeiten
+![Screenshot der Startseite](media/ad-edit.png)
+### Suche
+![Screenshot der Suche](media/search.png)
+###
