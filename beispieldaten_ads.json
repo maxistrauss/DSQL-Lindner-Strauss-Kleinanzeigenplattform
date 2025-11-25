@@ -10,6 +10,11 @@
     "publishedAt": {
       "$date": "2025-11-05T19:42:56.742Z"
     },
+    "address": "Rosenheimer Str. 145, 81671 München",
+    "location": {
+      "type": "Point",
+      "coordinates": [11.59809, 48.12564]
+    },
     "seller": {
       "username": "Max_Mustermann",
       "phoneNumber": "0123456789"
@@ -37,6 +42,11 @@
     "price": "0.0",
     "publishedAt": {
       "$date": "2025-02-06T00:00:00Z"
+    },
+    "address": "Königstraße 74, 90402 Nürnberg",
+    "location": {
+      "type": "Point",
+      "coordinates": [11.08047, 49.45055]
     },
     "seller": {
       "username": "Erika.Mustermann",
@@ -82,6 +92,11 @@
     "publishedAt": {
       "$date": "2025-12-22T00:00:00Z"
     },
+    "address": "Maximilianstraße 81, 86150 Augsburg",
+    "location": {
+      "type": "Point",
+      "coordinates": [10.89943, 48.36702]
+    },
     "seller": {
       "username": "Klaus.Kleber",
       "phoneNumber": "0111223344"
@@ -126,6 +141,11 @@
     "publishedAt": {
       "$date": "2025-03-05T00:00:00Z"
     },
+    "address": "Domplatz 3, 93047 Regensburg",
+    "location": {
+      "type": "Point",
+      "coordinates": [12.09932, 49.01923]
+    },
     "seller": {
       "username": "Anna.Schmidt",
       "phoneNumber": "0222334455"
@@ -161,6 +181,11 @@
     "price": "250.0",
     "publishedAt": {
       "$date": "2025-12-14T00:00:00Z"
+    },
+    "address": "Juliuspromenade 19, 97070 Würzburg",
+    "location": {
+      "type": "Point",
+      "coordinates": [9.93238, 49.79441]
     },
     "seller": {
       "username": "Peter.Pan",
@@ -198,6 +223,11 @@
     "publishedAt": {
       "$date": "2025-01-02T00:00:00Z"
     },
+    "address": "Theresienstraße 15, 85049 Ingolstadt",
+    "location": {
+      "type": "Point",
+      "coordinates": [11.42400, 48.76508]
+    },
     "seller": {
       "username": "Lisa.Lauter",
       "phoneNumber": "0444556677"
@@ -217,6 +247,11 @@
     "publishedAt": {
       "$date": "2025-10-30T00:00:00Z"
     },
+    "address": "Hauptstraße 55, 91054 Erlangen",
+    "location": {
+      "type": "Point",
+      "coordinates": [11.01043, 49.59811]
+    },
     "seller": {
       "username": "Tom.Turbo",
       "phoneNumber": "0555667788"
@@ -235,6 +270,11 @@
     "price": "300.0",
     "publishedAt": {
       "$date": "2025-05-26T00:00:00Z"
+    },
+    "address": "Rudolf-Breitscheid-Str. 53, 90762 Fürth",
+    "location": {
+      "type": "Point",
+      "coordinates": [10.98927, 49.47763]
     },
     "seller": {
       "username": "Familie.Meier",
@@ -271,6 +311,11 @@
     "price": "450.0",
     "publishedAt": {
       "$date": "2025-01-14T00:00:00Z"
+    },
+    "address": "Nikolastr. 12, 94032 Passau",
+    "location": {
+      "type": "Point",
+      "coordinates": [13.46958, 48.57360]
     },
     "seller": {
       "username": "Sporty.Spice",
@@ -316,6 +361,11 @@
     "publishedAt": {
       "$date": "2025-04-12T00:00:00Z"
     },
+    "address": "Münchener Str. 21, 83022 Rosenheim",
+    "location": {
+      "type": "Point",
+      "coordinates": [12.12533, 47.85669]
+    },
     "seller": {
       "username": "Sauber.Mann",
       "phoneNumber": "0888990011"
@@ -334,6 +384,11 @@
     "price": "500.0",
     "publishedAt": {
       "$date": "2025-08-08T00:00:00Z"
+    },
+    "address": "Bahnhofstraße 5, 85051 Ingolstadt",
+    "location": {
+      "type": "Point",
+      "coordinates": [11.41789, 48.72734]
     },
     "seller": {
       "username": "Heim.Kino",
@@ -363,6 +418,11 @@
     "publishedAt": {
       "$date": "2025-12-16T00:00:00Z"
     },
+    "address": "Ludwigstraße 23, 95444 Bayreuth",
+    "location": {
+      "type": "Point",
+      "coordinates": [11.58425, 49.94564]
+    },
     "seller": {
       "username": "Büro.Hengst",
       "phoneNumber": "0112233445"
@@ -391,6 +451,11 @@
     "publishedAt": {
       "$date": "2025-06-04T00:00:00Z"
     },
+    "address": "Theresienstraße 18, 94032 Passau",
+    "location": {
+      "type": "Point",
+      "coordinates": [13.46394, 48.57492]
+    },
     "seller": {
       "username": "Junge.Familie",
       "phoneNumber": "0223344556"
@@ -418,6 +483,11 @@
     "price": "40.0",
     "publishedAt": {
       "$date": "2025-09-11T00:00:00Z"
+    },
+    "address": "Bahnhofplatz 2, 86150 Augsburg",
+    "location": {
+      "type": "Point",
+      "coordinates": [10.88659, 48.36507]
     },
     "seller": {
       "username": "Garten.Freund",
@@ -463,6 +533,11 @@
     "publishedAt": {
       "$date": "2025-08-12T00:00:00Z"
     },
+    "address": "Schützenstraße 12, 80335 München",
+    "location": {
+      "type": "Point",
+      "coordinates": [11.55737, 48.14072]
+    },
     "seller": {
       "username": "Foto.Graf",
       "phoneNumber": "0445566778"
@@ -506,6 +581,11 @@
     "price": "150.0",
     "publishedAt": {
       "$date": "2025-10-14T00:00:00Z"
+    },
+    "address": "Obere Sandstraße 19, 96049 Bamberg",
+    "location": {
+      "type": "Point",
+      "coordinates": [10.88626, 49.89138]
     },
     "seller": {
       "username": "Stauraum.Wunder",
@@ -551,6 +631,11 @@
     "publishedAt": {
       "$date": "2025-03-11T00:00:00Z"
     },
+    "address": "Maxstraße 4, 90762 Fürth",
+    "location": {
+      "type": "Point",
+      "coordinates": [10.98814, 49.47896]
+    },
     "seller": {
       "username": "Läufer.Ass",
       "phoneNumber": "0667788990"
@@ -578,6 +663,11 @@
     "price": "30.0",
     "publishedAt": {
       "$date": "2025-03-14T00:00:00Z"
+    },
+    "address": "Altstadt 27, 84028 Landshut",
+    "location": {
+      "type": "Point",
+      "coordinates": [12.15858, 48.53883]
     },
     "seller": {
       "username": "Schnell.Koch",
@@ -615,6 +705,11 @@
     "publishedAt": {
       "$date": "2025-01-16T00:00:00Z"
     },
+    "address": "Domstraße 5, 96049 Bamberg",
+    "location": {
+      "type": "Point",
+      "coordinates": [10.88101, 49.89155]
+    },
     "seller": {
       "username": "Drucker.Patron",
       "phoneNumber": "0889900112"
@@ -633,6 +728,11 @@
     "price": "20.0",
     "publishedAt": {
       "$date": "2025-07-04T00:00:00Z"
+    },
+    "address": "Hauptstraße 22, 85354 Freising",
+    "location": {
+      "type": "Point",
+      "coordinates": [11.74868, 48.39715]
     },
     "seller": {
       "username": "Bücher.Wurm",
@@ -669,6 +769,11 @@
     "price": "5142.95",
     "publishedAt": {
       "$date": "2025-11-10T02:26:24.704Z"
+    },
+    "address": "Luitpoldstraße 34, 95444 Bayreuth",
+    "location": {
+      "type": "Point",
+      "coordinates": [11.57422, 49.94641]
     },
     "seller": {
       "username": "jonas",

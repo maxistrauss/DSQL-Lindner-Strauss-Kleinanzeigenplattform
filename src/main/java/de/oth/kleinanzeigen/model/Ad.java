@@ -1,6 +1,7 @@
 package de.oth.kleinanzeigen.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
@@ -20,12 +21,14 @@ public class Ad {
     private Seller seller;
     private List<Comment> comments;
     private String imageId;
+    private String address;
+    private GeoJsonPoint location;
 
     public Ad() {
     }
 
     public Ad(String title, String description, String category, BigDecimal price, Instant publishedAt, Seller seller,
-            List<Comment> comments, String imageId) {
+            List<Comment> comments, String imageId, String address, GeoJsonPoint location) {
         this.title = title;
         this.description = description;
         this.category = category;
@@ -34,6 +37,8 @@ public class Ad {
         this.seller = seller;
         this.comments = comments;
         this.imageId = imageId;
+        this.address = address;
+        this.location = location;
     }
 
     // Getters and Setters
@@ -109,4 +114,10 @@ public class Ad {
     public void setImageId(String imageId) {
         this.imageId = imageId;
     }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public GeoJsonPoint getLocation() { return location; }
+    public void setLocation(GeoJsonPoint location) { this.location = location; }
 }

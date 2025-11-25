@@ -77,7 +77,7 @@ Konfiguration von MongoDB auf einem Debian-basierten System.
 ### 1. MongoDB Installieren
 
 a. **Importiere den öffentlichen GPG-Schlüssel von MongoDB:**
-# TODO !!
+
    ```bash
    sudo apt-get install gnupg curl
    curl -fsSL https://pgp.mongodb.com/server-6.0.asc | \
@@ -171,6 +171,12 @@ Dateien enthalten einige Beispielanzeigen und Bilder, die in die Datenbank impor
 mongoimport --username webService --password '!secure_PWD!' --authenticationDatabase admin --db kleinanzeigen_db --collection ads --file beispieldaten_ads.json --jsonArray
 mongoimport --username webService --password '!secure_PWD!' --authenticationDatabase admin --db kleinanzeigen_db --collection fs.files --file beispieldaten_fs_files.json --jsonArray
 mongoimport --username webService --password '!secure_PWD!' --authenticationDatabase admin --db kleinanzeigen_db --collection fs.chunks --file beispieldaten_fs_chunks.json --jsonArray
+```
+
+## Indizes
+```bash
+db.ads.createIndex({"title":"text", "description":"text"},{ default_language: "de" })
+db.ads.createIndex({"location":"2dsphere"})
 ```
 
 ## Screenshots

@@ -4,6 +4,7 @@ import de.oth.kleinanzeigen.model.Ad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.stereotype.Service;
 
@@ -31,21 +32,29 @@ public class KleinanzeigenService {
     }
 
     public Page<Ad> findAdsByCategory(String category, int page, int pageSize) {
-        return findAds(null, category, page, pageSize);
+        return findAds(null, category, null, 0, page, pageSize);
     }
 
-    public Page<Ad> findAdsByTitle(String searchTitle, int page, int pageSize) {
-        return findAds(searchTitle, null, page, pageSize);
-    }
-
-    public Page<Ad> findAds(String searchTitle, String category, int page, int pageSize) {
+    public Page<Ad> findAds(
+            String searchTitle, String category,
+            GeoJsonPoint location, int radius,
+            int page, int pageSize) {
         // TODO use Query and Criteria to prevent SQL-Injection ??
-        if(searchTitle == null) searchTitle = ".*";
-        if(category == null) category = ".*";
-        String queryStr = String.format(
-                            "{title: {$regex: /%s/, $options: \"i\"}, "
-                            + "category: {$regex: /^%s$/}}",
-                            searchTitle, category);
+
+        List<String> selections = new ArrayList<>();
+
+        if(searchTitle != null && !searchTitle.isBlank()) {
+            if(location == null) selections.add(String.format("$text: {$search: '%s'}",  searchTitle));
+            else selections.add(String.format("title: {$regex: /%s/, $options: \"i\"}",  searchTitle));
+        }
+        if(category != null && !category.isBlank())
+            selections.add(String.format("category: {$regex: /^%s$/}", category));
+        if(location != null)
+            selections.add(String.format("location: {$near: { $geometry: { type: \"Point\", coordinates: [%f, %f]}, $maxDistance: %d}}",
+                                        location.getX(), location.getY(), radius*1000));
+
+        String queryStr = String.format("{%s}", String.join(", ", selections));
+        System.out.println("queryStr: " + queryStr);
 
         BasicQuery contentQuery = new BasicQuery(queryStr, "{}");
         contentQuery.with(Sort.by(Sort.Direction.DESC, "publishedAt"))
@@ -54,8 +63,10 @@ public class KleinanzeigenService {
         List<Ad> ads = mongoTemplate.find(contentQuery, Ad.class);
 
         // total result for pagination
-        BasicQuery countQuery = new BasicQuery(queryStr);
-        long totalElements = mongoTemplate.count(countQuery, Ad.class);
+        BasicQuery countQuery = new BasicQuery(queryStr, "{}");
+        // use find instead of count because count does not work with $near
+        long totalElements = mongoTemplate.find(countQuery, Ad.class).size();
+        System.out.println("totalElements: " + totalElements);
 
         Pageable  pageable = PageRequest.of(page, pageSize);
         return new PageImpl<>(ads, pageable, totalElements);

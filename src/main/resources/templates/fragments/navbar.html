@@ -3,7 +3,7 @@
 <nav th:fragment="navbar(category)" class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container d-flex align-items-center">
         <a class="navbar-brand" href="/">Kleinanzeigen</a>
-        <div class="middle-div flex-grow-1 mx-2" style="max-width: 40%;">
+        <div class="middle-div flex-grow-1 mx-2" style="max-width: 60%;">
             <form class="d-flex ms-auto" action="/search" method="get">
                 <input class="form-control me-2"
                        type="search"
@@ -11,6 +11,93 @@
                        th:value="${param.title}"
                        placeholder="Suche..."
                        aria-label="Search"/>
+
+                <!-- address -->
+                <input type="text"
+                       name="address"
+                       class="form-control"
+                       placeholder="PLZ oder Ort"
+                       th:value="${address}">
+
+                <!-- radius -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            style="min-width: 160px; max-width: 160px"
+                            id="radiusToggle"
+                            th:text="${radius != null} ? 'Umkreis: ' + ${radius} + ' km' : 'Umkreis wählen'">>
+                        Umkreis
+                    </button>
+
+                    <!-- slider -->
+                    <div class="dropdown-menu p-3" style="min-width: 250px;">
+                        <label for="radiusSlider" class="form-label mb-1">Entfernung:</label>
+
+                        <input type="range"
+                               id="radiusSlider"
+                               min="0"
+                               th:max="${radiusOptions.size()-1}"
+                               step="1"
+                               class="form-range"
+                               th:value="${radiusOptions.indexOf(radius) ?: 3}">
+                        <!--TODO only send address and radius if necessary -> same with title in general-->
+                        <div class="text-center mt-2">
+                            <span id="radiusValue" class="fw-semibold" th:text="${radius != null ? radius + ' km' : '25 km'}">25 km</span>
+                        </div>
+                    </div>
+                    <script th:inline="javascript">
+                        function getCookie(name) {
+                            const value = `; ${document.cookie}`;
+                            const parts = value.split(`; ${name}=`);
+                            if (parts.length === 2) return parts.pop().split(';').shift();
+                        }
+
+                        document.addEventListener("DOMContentLoaded", () => {
+                            /*<![CDATA[*/
+                            const radiusMap = [[${radiusOptions}]];
+                            /*]]>*/
+                            const slider = document.getElementById("radiusSlider");
+                            const display = document.getElementById("radiusValue");
+                            const button = document.getElementById("radiusToggle");
+
+
+                            // try to get address & radius from cookie
+                            const addressField = document.querySelector("input[name='address']");
+                            const savedAddress = getCookie("userAddress");
+                            if(savedAddress && addressField) {
+                                addressField.value = savedAddress;
+                            }
+                            const savedRadius = parseInt(getCookie("userRadius"), 10);
+                            if(!isNaN(savedRadius)) {
+                                const index = radiusMap.indexOf(savedRadius);
+                                if(index !== -1) slider.value = index;
+                            }
+
+                            const form = slider.closest("form");
+
+                            const updateDisplay = () => {
+                                const radius = radiusMap[slider.value]; // km-value
+                                display.textContent = radius + " km";
+                                button.textContent = "Umkreis: " + radius + " km";
+
+                                // send mapped slider value to backend
+                                let hiddenInput = document.querySelector('input[name="radius"]');
+                                if(!hiddenInput) {
+                                    hiddenInput = document.createElement("input");
+                                    hiddenInput.type = "hidden";
+                                    hiddenInput.name = "radius";
+                                    slider.closest("form").appendChild(hiddenInput);
+                                }
+                                hiddenInput.value = radius;
+                            };
+
+                            slider.addEventListener("input", updateDisplay);
+                            updateDisplay();
+                        });
+                    </script>
+                </div>
                 <!-- only add if category != null -->
                 <input type="hidden" name="category"
                        th:if="${category != null}"

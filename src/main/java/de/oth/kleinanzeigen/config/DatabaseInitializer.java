@@ -1,5 +1,6 @@
 package de.oth.kleinanzeigen.config;
 
+import com.mongodb.client.model.geojson.Point;
 import de.oth.kleinanzeigen.model.Ad;
 import de.oth.kleinanzeigen.model.Comment;
 import de.oth.kleinanzeigen.model.Seller;
@@ -43,7 +44,7 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         Ad sampleAd = new Ad("Gebrauchtes Fahrrad", "Gut erhaltenes Herrenrad, 28 Zoll, 7 Gänge. Kaum gefahren.",
                 "Fahrräder", new BigDecimal("150.00"), Instant.now().minusSeconds(60 * 60 * 24 * 3), seller,
-                List.of(comment), null);
+                List.of(comment), null, "Hauptstraße 22, 85354 Freising", null);
 
         adRepository.save(sampleAd);
         System.out.println("Saved sample ad: " + sampleAd);

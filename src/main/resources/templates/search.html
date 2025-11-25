@@ -25,7 +25,11 @@
         </div>
 
         <!-- ads -->
-        <div th:replace="~{fragments/ad-list-horizontal-paged :: ad-list-horizontal-paged('search?title=' + ${title} + (${category == null} ? '' : '&category=' + ${category}), 'Keine Suchergebnisse.')}"></div>
+        <div th:replace="~{fragments/ad-list-horizontal-paged :: ad-list-horizontal-paged(
+                'search?title=' + ${title}
+                + (${category == null} ? '' : '&category=' + ${category})
+                + (${address == null} ? '' : '&address=' + ${address})
+                + (${radius == null} ? '' : '&radius=' + ${radius}), 'Keine Suchergebnisse.')}"></div>
     </div>
 </main>
 
