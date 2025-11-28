@@ -197,7 +197,7 @@ public class WebController {
     }
 
     @PostMapping("/ads/{id}/comments")
-    public String addComment(@PathVariable String id, @RequestParam String text, @RequestParam int rating,
+    public String addComment(@PathVariable String id, @RequestParam String text,
             @RequestParam(name = "guestName", required = false) String guestName,
             @CookieValue(name = "userId", required = false) String loggedInUserId) {
         Optional<Ad> adOptional = adRepository.findById(id);
@@ -206,7 +206,7 @@ public class WebController {
 
             Comment comment = new Comment();
             comment.setText(text);
-            comment.setRating(rating);
+            comment.setRating(5);
             comment.setCreatedAt(LocalDateTime.now());
 
             String commenterName;

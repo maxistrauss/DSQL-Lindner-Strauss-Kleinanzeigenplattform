@@ -78,11 +78,6 @@
                             <label class="form-label" for="text">Kommentar</label>
                             <textarea class="form-control" id="text" name="text" required rows="3"></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="rating">Bewertung (1-5)</label>
-                            <input class="form-control" id="rating" max="5" min="1" name="rating" required
-                                   type="number" value="5">
-                        </div>
                         <button class="btn btn-primary" type="submit">Kommentar abschicken</button>
                     </form>
                 </div>
@@ -98,7 +93,6 @@
                               th:if="${ad.seller != null and ad.seller.username == comment.userId}" th:text="${comment.userId} + ' (Verkäufer)'"></span>
                         <span th:text="${comment.userId}"
                               th:unless="${ad.seller != null and ad.seller.username == comment.userId}"></span> |
-                        Bewertung: <span th:text="${comment.rating}">5</span>/5 |
                         Datum: <span
                             th:text="${#temporals.format(comment.createdAt, 'dd.MM.yyyy HH:mm')}">dd.MM.yyyy</span>
                     </small>
