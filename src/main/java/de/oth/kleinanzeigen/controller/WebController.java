@@ -1,9 +1,12 @@
 package de.oth.kleinanzeigen.controller;
 
+import de.oth.kleinanzeigen.dto.ApiAdResult;
+import de.oth.kleinanzeigen.dto.ApiSearchResult;
 import de.oth.kleinanzeigen.model.Ad;
 import de.oth.kleinanzeigen.model.Comment;
 import de.oth.kleinanzeigen.model.Seller;
 import de.oth.kleinanzeigen.repository.AdRepository;
+import de.oth.kleinanzeigen.service.FederatedSearchService;
 import de.oth.kleinanzeigen.service.GeoServiceOSM;
 import de.oth.kleinanzeigen.service.GridFsService;
 import de.oth.kleinanzeigen.service.KleinanzeigenService;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -31,14 +35,44 @@ public class WebController {
     private final GridFsService gridFsService;
     private final KleinanzeigenService kleinanzeigenService;
     private final GeoServiceOSM geoService;
+    private final FederatedSearchService federatedSearchService;
     private static final int PAGE_SIZE = 3;
     private static final List<Integer> RADIUS_OPTIONS = Arrays.asList(1,5,10,25,50,100,250,500);
 
-    public WebController(AdRepository adRepository, GridFsService gridFsService, KleinanzeigenService kleinanzeigenService, GeoServiceOSM geoService) {
+    public WebController(AdRepository adRepository, GridFsService gridFsService,
+            KleinanzeigenService kleinanzeigenService, GeoServiceOSM geoService,
+            FederatedSearchService federatedSearchService) {
         this.adRepository = adRepository;
         this.gridFsService = gridFsService;
         this.kleinanzeigenService = kleinanzeigenService;
         this.geoService = geoService;
+        this.federatedSearchService = federatedSearchService;
+    }
+
+    @GetMapping(value = "/", params = "mode=api_search")
+    @ResponseBody
+    public ApiSearchResult apiSearch(@RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "lon", required = false) Double lon,
+            @RequestParam(name = "lat", required = false) Double lat,
+            @RequestParam(name = "distance", required = false) Integer distance) {
+        System.out.println("API search request received. Search term: " + search + ", Lon: " + lon + ", Lat: " + lat
+                + ", Distance: " + distance);
+
+        GeoJsonPoint location = null;
+        if (lon != null && lat != null) {
+            location = new GeoJsonPoint(lon, lat);
+        }
+        int r = distance != null ? distance : -1;
+
+        Page<Ad> ads = kleinanzeigenService.findAds(search, null, location, r, 0, 20);
+
+        List<ApiAdResult> results = ads.getContent().stream().map(ad -> {
+            String url = ServletUriComponentsBuilder.fromCurrentContextPath().path("/ads/").path(ad.getId())
+                    .toUriString();
+            return new ApiAdResult(ad.getTitle(), ad.getPrice(), url);
+        }).collect(Collectors.toList());
+
+        return new ApiSearchResult("OTH-Kleinanzeigen-Portal", results);
     }
 
     @GetMapping("/")
@@ -72,6 +106,9 @@ public class WebController {
             @RequestParam(name = "page", required = false, defaultValue = "0") int page,
             @CookieValue(name = "userId", required = false) String userId,
             HttpServletResponse response){
+        System.out.println(
+                "Web search request received. Title: " + title + ", Category: " + category + ", Address: " + address
+                        + ", Radius: " + radius + ", Page: " + page);
 
         GeoJsonPoint location = null;
         if(address != null && !address.isBlank()){
@@ -89,6 +126,15 @@ public class WebController {
             response.addCookie(cookie);
         }
         Page<Ad> adsPage = kleinanzeigenService.findAds(title, category, location, radius, page, PAGE_SIZE);
+
+        if (page == 0) {
+            Double lon = location != null ? location.getX() : null;
+            Double lat = location != null ? location.getY() : null;
+            Integer dist = radius > 0 ? radius : null;
+            List<ApiSearchResult> externalResults = federatedSearchService.searchExternalPortals(title.trim(), lon, lat,
+                    dist);
+            model.addAttribute("externalResults", externalResults);
+        }
 
         model.addAttribute("userId", userId); // Add userId to the model
         model.addAttribute("title", title);
