@@ -5,6 +5,8 @@ import de.oth.kleinanzeigen.model.Comment;
 import de.oth.kleinanzeigen.model.Seller;
 import de.oth.kleinanzeigen.repository.AdRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.data.mongodb.core.CollectionOptions;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Component;
@@ -21,16 +23,27 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     private final AdRepository adRepository;
     private final GridFsTemplate gridFsTemplate;
+    private final MongoTemplate mongoTemplate;
 
     private final Map<String, String> categoryImageCache = new HashMap<>();
 
-    public DatabaseInitializer(AdRepository adRepository, GridFsTemplate gridFsTemplate) {
+    public DatabaseInitializer(AdRepository adRepository, GridFsTemplate gridFsTemplate, MongoTemplate mongoTemplate) {
         this.adRepository = adRepository;
         this.gridFsTemplate = gridFsTemplate;
+        this.mongoTemplate = mongoTemplate;
     }
 
     @Override
     public void run(String... args) throws Exception {
+
+        // Initialisierung der Capped Collection für Such-Logs
+        if (!mongoTemplate.collectionExists("search_logs")) {
+            CollectionOptions options = CollectionOptions.empty().capped().size(5242880) // 5 MB
+                    .maxDocuments(5000);
+            mongoTemplate.createCollection("search_logs", options);
+            System.out.println("--- Capped Collection 'search_logs' created ---");
+        }
+        
         // Check if database is already populated
         if (adRepository.count() > 0) {
             System.out.println("--- Database already initialized. Skipping sample data creation. ---");

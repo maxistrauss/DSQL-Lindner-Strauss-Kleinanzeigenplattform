@@ -36,17 +36,20 @@ public class WebController {
     private final KleinanzeigenService kleinanzeigenService;
     private final GeoServiceOSM geoService;
     private final FederatedSearchService federatedSearchService;
+    private final de.oth.kleinanzeigen.service.TrackingService trackingService;
     private static final int PAGE_SIZE = 3;
     private static final List<Integer> RADIUS_OPTIONS = Arrays.asList(1,5,10,25,50,100,250,500);
 
     public WebController(AdRepository adRepository, GridFsService gridFsService,
             KleinanzeigenService kleinanzeigenService, GeoServiceOSM geoService,
-            FederatedSearchService federatedSearchService) {
+            FederatedSearchService federatedSearchService,
+            de.oth.kleinanzeigen.service.TrackingService trackingService) {
         this.adRepository = adRepository;
         this.gridFsService = gridFsService;
         this.kleinanzeigenService = kleinanzeigenService;
         this.geoService = geoService;
         this.federatedSearchService = federatedSearchService;
+        this.trackingService = trackingService;
     }
 
     @GetMapping(value = "/", params = "mode=api_search")
@@ -54,7 +57,7 @@ public class WebController {
     public ApiSearchResult apiSearch(@RequestParam(name = "search", required = false) String search,
             @RequestParam(name = "lon", required = false) Double lon,
             @RequestParam(name = "lat", required = false) Double lat,
-            @RequestParam(name = "distance", required = false) Integer distance) {
+            @RequestParam(name = "distance", required = false) Integer distance, HttpServletRequest request) {
         System.out.println("API search request received. Search term: " + search + ", Lon: " + lon + ", Lat: " + lat
                 + ", Distance: " + distance);
 
@@ -65,6 +68,10 @@ public class WebController {
         int r = distance != null ? distance : -1;
 
         Page<Ad> ads = kleinanzeigenService.findAds(search, null, location, r, 0, 20);
+
+        // Tracking
+        String locString = (lon != null && lat != null) ? lat + ", " + lon : null;
+        trackingService.logSearch(search, locString, distance, ads.getNumberOfElements(), request.getRemoteAddr());
 
         List<ApiAdResult> results = ads.getContent().stream().map(ad -> {
             String url = ServletUriComponentsBuilder.fromCurrentContextPath().path("/ads/").path(ad.getId())
@@ -93,6 +100,9 @@ public class WebController {
         long adCount = kleinanzeigenService.countAllAds();
         model.addAttribute("adCount", adCount);
 
+        List<de.oth.kleinanzeigen.dto.TopSearchTerm> topSearchTerms = trackingService.getTopSearchTerms(10);
+        model.addAttribute("topSearchTerms", topSearchTerms);
+
         return "home";
     }
 
@@ -104,8 +114,8 @@ public class WebController {
             @RequestParam(name = "address", required = false) String address,
             @RequestParam(name = "radius", required = false, defaultValue = "-1") int radius,
             @RequestParam(name = "page", required = false, defaultValue = "0") int page,
-            @CookieValue(name = "userId", required = false) String userId,
-            HttpServletResponse response){
+            @CookieValue(name = "userId", required = false) String userId, HttpServletResponse response,
+            HttpServletRequest request) {
         System.out.println(
                 "Web search request received. Title: " + title + ", Category: " + category + ", Address: " + address
                         + ", Radius: " + radius + ", Page: " + page);
@@ -126,6 +136,12 @@ public class WebController {
             response.addCookie(cookie);
         }
         Page<Ad> adsPage = kleinanzeigenService.findAds(title, category, location, radius, page, PAGE_SIZE);
+
+        // Tracking
+        if (page == 0) { // Log only first page request
+            Integer dist = radius > 0 ? radius : null;
+            trackingService.logSearch(title, address, dist, (int) adsPage.getTotalElements(), request.getRemoteAddr());
+        }
 
         if (page == 0) {
             Double lon = location != null ? location.getX() : null;

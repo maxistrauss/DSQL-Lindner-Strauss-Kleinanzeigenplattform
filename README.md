@@ -49,25 +49,45 @@ Das Projekt ist logisch und übersichtlich strukturiert, um die Wartbarkeit und 
 
 ## Installation der Anwendung
 
-1**Erstelle das Projekt mit Gradle:**
+1. **Erstelle das Projekt mit Gradle:**
    ```bash
    ./gradlew build
    ```
 
-2**Verschiebe die JAR-Datei via FTP**
+2. **Verschiebe die JAR-Datei via FTP**
    ```bash
    sftp nosql@10.127.0.44
    put "...dsql-lindner-straus-kleinanzeigenplattform\build\libs\Kleinanzeigen-0.0.1-SNAPSHOT.jar"
    ```
-   
-   REM: Pfad im put-Command unvollständig, da private Verzeichnisse. 
+   REM: Pfad im put-Command unvollständig, da private Verzeichnisse.
 
-3**Starte das Projekt:**
+3. **Starte das Projekt:**
    ```bash
    sudo java -jar Kleinanzeigen-0.0.1-SNAPSHOT.jar
    ```
-
    Die Anwendung ist nun unter `http://localhost:80` erreichbar.
+
+## Such-Tracking und -Statistiken
+
+Die Anwendung protokolliert automatisch alle über die Suchfunktion (Web-UI und API) durchgeführten Volltext- und
+Umkreissuchen. Diese Daten werden in einer speziellen **Capped Collection** namens `search_logs` in MongoDB gespeichert.
+
+Die `search_logs` Collection wird beim ersten Start der Anwendung automatisch vom `DatabaseInitializer` erstellt (falls
+sie noch nicht existiert) und ist auf eine Größe von 5 MB und maximal 5000 Dokumente begrenzt.
+
+Folgende Informationen werden pro Suchanfrage gespeichert:
+
+* **Zeitstempel:** Wann die Suche durchgeführt wurde.
+* **Suchstring:** Der eingegebene Suchbegriff.
+* **Standort/Radius:** Die geografische Angabe (Adresse oder Koordinaten) und der Umkreis, falls für die Suche
+  verwendet.
+* **Anzahl der Ergebnisse:** Wie viele Kleinanzeigen durch die Suche gefunden wurden.
+* **IP-Adresse:** Die IP-Adresse des Benutzers, der die Suche durchgeführt hat.
+
+Diese Protokollierung dient der späteren Analyse des Nutzerverhaltens und der Optimierung der Suchfunktion.
+
+Auf der Startseite des Portals werden zudem die **Top 10 Suchbegriffe der letzten 24 Stunden** angezeigt, basierend auf
+einer Aggregations-Pipeline, die diese Daten aus der `search_logs` Collection extrahiert.
 
 ## Datenbank-Einrichtung (MongoDB)
 
