@@ -252,7 +252,6 @@ public class WebController {
 
             Comment comment = new Comment();
             comment.setText(text);
-            comment.setRating(5);
             comment.setCreatedAt(LocalDateTime.now());
 
             String commenterName;

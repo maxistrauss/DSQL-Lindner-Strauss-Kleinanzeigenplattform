@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class KleinanzeigenService {
@@ -50,7 +51,8 @@ public class KleinanzeigenService {
         if(category != null && !category.isBlank())
             selections.add(String.format("category: {$regex: /^%s$/}", category));
         if(location != null)
-            selections.add(String.format("location: {$near: { $geometry: { type: \"Point\", coordinates: [%f, %f]}, $maxDistance: %d}}",
+            selections.add(String.format(Locale.US,
+                    "location: {$near: { $geometry: { type: \"Point\", coordinates: [%f, %f]}, $maxDistance: %d}}",
                                         location.getX(), location.getY(), radius*1000));
 
         String queryStr = String.format("{%s}", String.join(", ", selections));
