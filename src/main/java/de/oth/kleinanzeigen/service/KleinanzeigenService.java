@@ -1,6 +1,7 @@
 package de.oth.kleinanzeigen.service;
 
 import de.oth.kleinanzeigen.model.Ad;
+import de.oth.kleinanzeigen.model.AdView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -22,7 +23,7 @@ public class KleinanzeigenService {
 
     public List<Ad> findRandomAds(int n) {
         BasicQuery query = new BasicQuery("{}", "{}");
-        List<Ad> ads = mongoTemplate.find(query, Ad.class);
+        List<AdView> ads = mongoTemplate.find(query, AdView.class, "ads_view");
 
         // swap n randomly picked elements to the end of the list
         List<Ad> copy = new ArrayList<>(ads);
@@ -59,15 +60,19 @@ public class KleinanzeigenService {
         System.out.println("queryStr: " + queryStr);
 
         BasicQuery contentQuery = new BasicQuery(queryStr, "{}");
-        contentQuery.with(Sort.by(Sort.Direction.DESC, "publishedAt"))
-                .skip(page*pageSize)
+        contentQuery.with(Sort.by(Sort.Direction.DESC, "publishedAt")).skip((long) page * pageSize)
                 .limit(pageSize);
-        List<Ad> ads = mongoTemplate.find(contentQuery, Ad.class);
+
+        // Query "ads" collection directly to support Text Index
+        List<Ad> ads = mongoTemplate.find(contentQuery, Ad.class, "ads");
+
+        // Manually calculate numberOfComments since we are not using the view
+        ads.forEach(ad -> ad.setNumberOfComments(ad.getComments() != null ? ad.getComments().size() : 0));
 
         // total result for pagination
         BasicQuery countQuery = new BasicQuery(queryStr, "{}");
         // use find instead of count because count does not work with $near
-        long totalElements = mongoTemplate.find(countQuery, Ad.class).size();
+        long totalElements = mongoTemplate.find(countQuery, Ad.class, "ads").size();
         System.out.println("totalElements: " + totalElements);
 
         Pageable  pageable = PageRequest.of(page, pageSize);

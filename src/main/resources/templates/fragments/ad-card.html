@@ -16,6 +16,8 @@
             <small class="text-muted" th:text="${#temporals.format(ad.publishedAt, 'dd.MM.yyyy HH:mm')}">01.01.2024</small>
             <div>
                 <span class="fw-bold me-2" th:text="${#numbers.formatDecimal(ad.price, 1, 'COMMA', 2, 'POINT')} + ' €'">0,00 €</span>
+                <span class="badge bg-info text-dark me-2" th:if="${ad.numberOfComments > 0}"
+                      th:text="${ad.numberOfComments} + ' Komm.'"></span>
                 <a th:href="@{'/ads/' + ${ad.id}}" class="btn btn-sm btn-outline-primary">Details</a>
             </div>
         </div>

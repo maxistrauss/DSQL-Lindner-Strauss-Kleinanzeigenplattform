@@ -5,9 +5,12 @@ import de.oth.kleinanzeigen.model.Comment;
 import de.oth.kleinanzeigen.model.Seller;
 import de.oth.kleinanzeigen.repository.AdRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.CollectionOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.index.*;
+import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Component;
 
@@ -35,19 +38,66 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        // Check if database already contains data
+        long adCount = mongoTemplate.count(new BasicQuery("{}"), Ad.class, "ads");
+        if (adCount > 0) {
+            System.out.println("--- Database already contains data. Skipping initialization. ---");
+            return;
+        }
 
-        // Initialisierung der Capped Collection für Such-Logs
+        // Create Indexes manually
+        try {
+            IndexOperations indexOps = mongoTemplate.indexOps(Ad.class);
+
+            // Text Index
+            indexOps.createIndex(new TextIndexDefinition.TextIndexDefinitionBuilder().onField("title").build());
+            // Geo Index
+            indexOps.createIndex(new GeospatialIndex("location").typed(GeoSpatialIndexType.GEO_2DSPHERE));
+            // Compound Index: Category + Date
+            indexOps.createIndex(new Index().on("category", Sort.Direction.ASC).on("publishedAt", Sort.Direction.DESC));
+            // Single Field Indexes
+            indexOps.createIndex(new Index().on("price", Sort.Direction.ASC));
+            indexOps.createIndex(new Index().on("publishedAt", Sort.Direction.DESC));
+            indexOps.createIndex(new Index().on("seller.username", Sort.Direction.ASC));
+
+            System.out.println("--- Indexes for 'Ad' created manually ---");
+        } catch (Exception e) {
+            System.err.println("Error creating indexes: " + e.getMessage());
+        }
+
+        // Initialize 'search_logs' Capped Collection
         if (!mongoTemplate.collectionExists("search_logs")) {
             CollectionOptions options = CollectionOptions.empty().capped().size(5242880) // 5 MB
                     .maxDocuments(5000);
             mongoTemplate.createCollection("search_logs", options);
             System.out.println("--- Capped Collection 'search_logs' created ---");
         }
-        
-        // Check if database is already populated
-        if (adRepository.count() > 0) {
-            System.out.println("--- Database already initialized. Skipping sample data creation. ---");
-            return;
+
+        // Initialize 'ads_view' View
+        try {
+            com.mongodb.client.MongoDatabase db = mongoTemplate.getDb();
+            boolean exists = false;
+            for (org.bson.Document doc : db.listCollections()) {
+                if ("ads_view".equals(doc.getString("name"))) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (exists) {
+                db.getCollection("ads_view").drop();
+            }
+
+            String viewName = "ads_view";
+            String viewOn = "ads";
+            List<org.bson.Document> pipeline = List.of(new org.bson.Document("$addFields",
+                    new org.bson.Document("numberOfComments", new org.bson.Document("$size",
+                            new org.bson.Document("$ifNull", List.of("$comments", List.of()))))));
+            db.createView(viewName, viewOn, pipeline);
+            System.out.println("--- View 'ads_view' created ---");
+
+        } catch (Exception e) {
+            System.err.println("Error creating view 'ads_view': " + e.getMessage());
         }
 
         System.out.println("--- Initializing Database with sample data ---");
