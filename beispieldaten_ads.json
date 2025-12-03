@@ -750,7 +750,7 @@
       {
         "userId": "jonas",
         "text": "Ist wirklich gut, der neuste Scheiß ;)",
-"createdAt": {
+        "createdAt": {
           "$date": "2025-11-10T02:27:14.283Z"
         }
       }
