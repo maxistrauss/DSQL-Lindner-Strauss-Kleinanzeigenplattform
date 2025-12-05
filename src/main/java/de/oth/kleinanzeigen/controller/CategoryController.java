@@ -25,12 +25,14 @@ class CategoryController {
     }
 
     @GetMapping("/categories/{category}")
-    public String categoriesName(@PathVariable String category, Model model,
-                            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
-                            @CookieValue(name = "userId", required = false) String userId) {
+    public String categoriesName(
+            @PathVariable String category, Model model,
+            @RequestParam(name = "sort", required = false, defaultValue = "relevance") String sort,
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            @CookieValue(name = "userId", required = false) String userId) {
         boolean categoryHasAds = kleinanzeigenService.hasCategoryAds(category);
         if (categoryHasAds) {
-            Page<Ad> adsPage = kleinanzeigenService.findAdsByCategory(category, page, PAGE_SIZE);
+            Page<Ad> adsPage = kleinanzeigenService.findAdsByCategory(category, sort, page, PAGE_SIZE);
 
             model.addAttribute("userId", userId); // Add userId to the model
             model.addAttribute("category", category);

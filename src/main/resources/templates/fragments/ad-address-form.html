@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<div th:fragment="ad-address-form(ad)" class="d-flex flex-column gap-3">
+    <div class="">
+        <label class="form-label">Adresse (PLZ Ort oder Straße)</label>
+        <div class="input-group">
+            <input id="addressInput"
+                   name="address"
+                   class="form-control"
+                   th:value="${ad != null} ? ${ad.address} : ''"
+                   placeholder="PLZ oder Ort"/>
+            <div id="addressFeedback" class="invalid-feedback">Bitte geben Sie eine gültige Adresse ein.</div>
+        </div>
+    </div>
+
+    <!-- inline small map for preview -->
+    <div id="formMap" class="flex-fill" style="height: 240px;"></div>
+    <!-- map -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener("DOMContentLoaded", () => {
+            const addressInput = document.getElementById("addressInput");
+            const feedback = document.getElementById("addressFeedback");
+            const form = addressInput.closest('form');
+
+            const GERMANY_CENTER_LAT = 51.1657;
+            const GERMANY_CENTER_LON = 10.4515;
+            const GERMANY_ZOOM = 6;
+
+            // Leaflet Map setup (if you have a map element in the form)
+            let map, marker;
+            function ensureMap(lat = 49.0, lon = 11.0, zoom = 6) {
+                if (!map) {
+                    map = L.map('formMap').setView([lat, lon], zoom);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                } else {
+                    map.setView([lat, lon], zoom);
+                }
+            }
+
+            function setMarker(lat, lon) {
+                ensureMap(lat, lon, 13);
+                if (!marker) {
+                    marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+                    marker.on('dragend', (e) => {
+                        const p = e.target.getLatLng();
+                        // update lastValidLocation when user drags marker
+                        lastValidLocation = { lat: p.lat, lon: p.lng, display: addressInput.value || '' };
+                    });
+                } else {
+                    marker.setLatLng([lat, lon]);
+                }
+            }
+
+            // lastValidLocation kept in JS only (not submitted)
+            let lastValidLocation = null;
+            let lastQueried = addressInput.value ? addressInput.value.trim() : "";
+            let pending = false;
+
+            async function geocode(address) {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`;
+                try {
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json', 'User-Agent': 'my-app/1.0 (email@example.com)' }});
+                    if (!res.ok) return null;
+                    const data = await res.json();
+                    if (!data || data.length === 0) return null;
+                    return { lat: Number(data[0].lat), lon: Number(data[0].lon), display: data[0].display_name };
+                } catch (err) {
+                    console.error("Geocode error", err);
+                    return null;
+                }
+            }
+
+            function markInvalid(msg) {
+                addressInput.classList.add('is-invalid');
+                addressInput.setAttribute('aria-invalid', 'true');
+                feedback.textContent = msg;
+                lastValidLocation = null;
+            }
+            function clearInvalid() {
+                addressInput.classList.remove('is-invalid');
+                addressInput.removeAttribute('aria-invalid');
+                feedback.textContent = '';
+            }
+
+            async function validateAndSetLocationFromAddress() {
+                const raw = addressInput.value ? addressInput.value.trim() : "";
+                if (!raw) {
+                    markInvalid('Bitte geben Sie eine Adresse ein.');
+                    return false;
+                }
+                // verhindere doppelte Abfragen
+                if (raw === lastQueried || pending) return !!lastValidLocation;
+
+                pending = true;
+                addressInput.classList.add('is-loading');
+                const loc = await geocode(raw);
+                addressInput.classList.remove('is-loading');
+                pending = false;
+
+                if (!loc) {
+                    markInvalid('Adresse nicht gefunden. Bitte präzisieren Sie (z. B. Straße + Hausnummer oder PLZ + Ort).');
+                    lastQueried = raw;
+                    return false;
+                }
+                // erfolgreich
+                clearInvalid();
+                lastQueried = raw;
+                lastValidLocation = loc; // {lat,lon,display}
+                setMarker(loc.lat, loc.lon);
+                return true;
+            }
+
+            addressInput.addEventListener('blur', async () => {
+                validateAndSetLocationFromAddress();
+            });
+
+            const serverLocation = /*[[${ad != null and ad.location != null} ? ${ad.location} : null]]*/ null;
+            const hasServerLocation = serverLocation !== null;
+            if (hasServerLocation) {
+                const lon = serverLocation.x;
+                const lat = serverLocation.y;
+                // setze lastValidLocation damit submit/validation passt
+                lastValidLocation = { lat: lat, lon: lon, display: /*[[${ad.address}]]*/ '' };
+                setMarker(lat, lon);
+            } else {
+                // if no server-coordinates but server-address, try to geocode it
+                const initialAddress = addressInput.value ? addressInput.value.trim() : "";
+                if (initialAddress) {
+                    // rufe die gleiche Funktion einmal auf (ohne auf das blur-Event warten)
+                    validateAndSetLocationFromAddress();
+                } else {
+                    // set default map view to germany
+                    ensureMap(GERMANY_CENTER_LAT, GERMANY_CENTER_LON, GERMANY_ZOOM)
+                }
+            }
+
+            // remove invalid state when user types again
+            addressInput.addEventListener('input', () => {
+                if (addressInput.classList.contains('is-invalid')) clearInvalid();
+            });
+
+            // Prevent submit if address not validated client-side
+            form.addEventListener('submit', (e) => {
+                // You may allow submit even if lastValidLocation==null so server re-geocodes, but here we block
+                if (!lastValidLocation) {
+                    e.preventDefault();
+                    markInvalid('Adresse wurde nicht verifiziert. Bitte überprüfen Sie Ihre Eingabe oder markieren Sie den Ort auf der Karte.');
+                }
+            });
+        });
+        /*]]>*/
+        //# sourceURL=debugMapFormJS.js
+    </script>
+</div>

@@ -4,7 +4,7 @@
     <div class="container d-flex align-items-center">
         <a class="navbar-brand" href="/">Kleinanzeigen</a>
         <div class="middle-div flex-grow-1 mx-2" style="max-width: 60%;">
-            <form class="d-flex ms-auto" action="/search" method="get">
+            <form class="d-flex ms-auto" action="/search" method="get" onsubmit="pruneEmptyInputs(this)">
                 <input class="form-control me-2"
                        type="search"
                        name="title"
@@ -56,46 +56,70 @@
 
                         document.addEventListener("DOMContentLoaded", () => {
                             /*<![CDATA[*/
-                            const radiusMap = [[${radiusOptions}]];
+                            const radiusMap = /*[[${radiusOptions}]]*/null;
                             /*]]>*/
                             const slider = document.getElementById("radiusSlider");
                             const display = document.getElementById("radiusValue");
                             const button = document.getElementById("radiusToggle");
 
 
-                            // try to get address & radius from cookie
-                            const addressField = document.querySelector("input[name='address']");
-                            const savedAddress = getCookie("userAddress");
-                            if(savedAddress && addressField) {
-                                addressField.value = savedAddress;
-                            }
-                            const savedRadius = parseInt(getCookie("userRadius"), 10);
-                            if(!isNaN(savedRadius)) {
-                                const index = radiusMap.indexOf(savedRadius);
-                                if(index !== -1) slider.value = index;
+                            if (!slider) return;
+
+                            // Helfer: setze / erstelle hidden input "radius" in *allen* such-forms (action="/search")
+                            function setRadiusOnAllSearchForms(radiusKm) {
+                                // Wähle alle Formulare, die auf /search submitten (Sort-Form & Search-Form)
+                                const forms = document.querySelectorAll('form[action="/search"]');
+                                forms.forEach(form => {
+                                    let inp = form.querySelector('input[name="radius"]');
+                                    if (!inp) {
+                                        inp = document.createElement("input");
+                                        inp.type = "hidden";
+                                        inp.name = "radius";
+                                        // optional: markiere den Ersteller
+                                        inp.dataset.owner = "radius-sync";
+                                        form.appendChild(inp);
+                                    }
+                                    inp.value = String(radiusKm);
+                                });
                             }
 
-                            const form = slider.closest("form");
+                            function removeRadiusFromAllSearchForms() {
+                                const forms = document.querySelectorAll('form[action="/search"]');
+                                forms.forEach(form => {
+                                    const inp = form.querySelector('input[name="radius"]');
+                                    if (inp) inp.remove();
+                                });
+                            }
+
+                            // If address exists, we want to send radius; otherwise remove radius inputs
+                            const addressField = document.querySelector("input[name='address']");
 
                             const updateDisplay = () => {
-                                const radius = radiusMap[slider.value]; // km-value
-                                display.textContent = radius + " km";
-                                button.textContent = "Umkreis: " + radius + " km";
+                                const idx = Number(slider.value);
+                                const radiusKm = radiusMap[idx];
+                                display.textContent = radiusKm + " km";
 
-                                // send mapped slider value to backend
-                                let hiddenInput = document.querySelector('input[name="radius"]');
-                                if(!hiddenInput) {
-                                    hiddenInput = document.createElement("input");
-                                    hiddenInput.type = "hidden";
-                                    hiddenInput.name = "radius";
-                                    slider.closest("form").appendChild(hiddenInput);
+                                // Button text — besser: inner span (avoid layout jump)
+                                const span = button.querySelector("span");
+                                if (span) span.textContent = "Umkreis: " + radiusKm + " km";
+                                else button.textContent = "Umkreis: " + radiusKm + " km";
+
+                                // only add/send radius when address is filled
+                                const addr = addressField ? addressField.value.trim() : "";
+                                if (addr !== "") {
+                                    setRadiusOnAllSearchForms(radiusKm);
+                                } else {
+                                    removeRadiusFromAllSearchForms();
                                 }
-                                hiddenInput.value = radius;
+
+                                console.debug("slider update:", { idx, radiusKm, address: addr });
                             };
 
+                            addressField.addEventListener("input", updateDisplay);
                             slider.addEventListener("input", updateDisplay);
                             updateDisplay();
                         });
+                        //# sourceURL=debugRadiusJS.js
                     </script>
                 </div>
                 <!-- only add if category != null -->
@@ -104,6 +128,31 @@
                        th:value="${category}" />
                 <button class="btn btn-outline-primary" type="submit">Suchen</button>
             </form>
+            <script>
+                function pruneEmptyInputs(form) {
+                    const controls = form.querySelectorAll('input, select, textarea');
+                    controls.forEach(c => {
+                        // ignore controls without name (they aren't submitted anyway)
+                        if(!c.name) return;
+
+                        // for checkboxes/radios: submit only if checked
+                        if((c.type === 'checkbox' || c.type === 'radio') && !c.checked) {
+                            // remove name so it won't be submitted
+                            c.removeAttribute('name');
+                            return;
+                        }
+
+                        // for other controls: if empty string -> remove name to avoid name=
+                        const value = (c.value || '').toString().trim();
+                        if(value === '') {
+                            c.removeAttribute('name'); // alternative: c.disabled = true;
+                        }
+                    });
+
+                    // Note: we don't return false -> allow normal submit to continue
+                }
+                //# sourceURL=debugRemoveAttributesJS.js
+            </script>
         </div>
         <!-- User/Login -->
         <div>

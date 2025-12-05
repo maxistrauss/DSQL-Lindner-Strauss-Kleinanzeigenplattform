@@ -14,8 +14,7 @@ public class GeoServiceOSM {
 
     public GeoJsonPoint geocode(String address) {
         try {
-            String url = "https://nominatim.openstreetmap.org/search?q=" + URLEncoder.encode(address, StandardCharsets.UTF_8)
-                    + "&format=json&limit=1";
+            String url = "https://nominatim.openstreetmap.org/search?q=" + address + "&format=json&limit=1";
 
             GeoResult[] results = rest.getForObject(url, GeoResult[].class);
 

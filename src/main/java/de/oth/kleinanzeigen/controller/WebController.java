@@ -67,7 +67,7 @@ public class WebController {
         }
         int r = distance != null ? distance : -1;
 
-        Page<Ad> ads = kleinanzeigenService.findAds(search, null, location, r, 0, 20);
+        Page<Ad> ads = kleinanzeigenService.findAds(search, null, location, r, "relevance", 0, 20);
 
         // Tracking
         String locString = (lon != null && lat != null) ? lat + ", " + lon : null;
@@ -88,7 +88,7 @@ public class WebController {
             @CookieValue(name = "userId", required = false) String userId) {
         model.addAttribute("userId", userId);
 
-        List<Ad> randomAds = kleinanzeigenService.findRandomAds(5);
+        List<Ad> randomAds = kleinanzeigenService.findRandomAds(8);
         List<String> categories = kleinanzeigenService.findAllCategories();
         long categoryCount = categories.size();
 
@@ -96,6 +96,7 @@ public class WebController {
         model.addAttribute("categories", categories);
         model.addAttribute("categoryCount", categoryCount);
         model.addAttribute("radiusOptions", RADIUS_OPTIONS);
+        model.addAttribute("radius", RADIUS_OPTIONS.get(RADIUS_OPTIONS.size()/2));
 
         long adCount = kleinanzeigenService.countAllAds();
         model.addAttribute("adCount", adCount);
@@ -109,16 +110,17 @@ public class WebController {
     @GetMapping("/search")
     public String search(
             Model model,
-            @RequestParam(name = "title") String title,
+            @RequestParam(name = "title", required = false, defaultValue = "") String title,
             @RequestParam(name = "category", required = false) String category,
             @RequestParam(name = "address", required = false) String address,
             @RequestParam(name = "radius", required = false, defaultValue = "-1") int radius,
+            @RequestParam(name = "sort", required = false, defaultValue = "relevance") String sort,
             @RequestParam(name = "page", required = false, defaultValue = "0") int page,
             @CookieValue(name = "userId", required = false) String userId, HttpServletResponse response,
             HttpServletRequest request) {
         System.out.println(
                 "Web search request received. Title: " + title + ", Category: " + category + ", Address: " + address
-                        + ", Radius: " + radius + ", Page: " + page);
+                        + ", Radius: " + radius + ", Page: " + page + ", Sort: " + sort);
 
         GeoJsonPoint location = null;
         if(address != null && !address.isBlank()){
@@ -135,7 +137,15 @@ public class WebController {
             cookie.setMaxAge(3600); // 1 hour
             response.addCookie(cookie);
         }
-        Page<Ad> adsPage = kleinanzeigenService.findAds(title, category, location, radius, page, PAGE_SIZE);
+        else {
+            // delete cookies
+            Cookie cookie = new Cookie("userAddress", address);
+            cookie.setPath("/");
+            cookie.setMaxAge(0);
+            response.addCookie(cookie);
+        }
+
+        Page<Ad> adsPage = kleinanzeigenService.findAds(title, category, location, radius, sort, page , PAGE_SIZE);
 
         // Tracking
         if (page == 0) { // Log only first page request
@@ -162,6 +172,7 @@ public class WebController {
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", adsPage.getTotalPages());
         model.addAttribute("totalElements", adsPage.getTotalElements());
+        model.addAttribute("sort", sort);
 
         // list of page indices
         if (adsPage.getTotalPages() > 0) {
@@ -207,7 +218,9 @@ public class WebController {
     }
 
     @GetMapping("/ads/new")
-    public String newAdForm(Model model, @CookieValue(name = "userId", required = false) String userId) {
+    public String newAdForm(
+            Model model,
+            @CookieValue(name = "userId", required = false) String userId) {
         if (userId == null) {
             return "redirect:/"; // Redirect to home to login
         }
@@ -224,6 +237,8 @@ public class WebController {
             return "redirect:/"; // Should not happen if form is protected
         }
         ad.setPublishedAt(Instant.now());
+
+        ad.setLocation(geoService.geocode(ad.getAddress()));
 
         Seller seller = new Seller();
         seller.setUsername(userId);

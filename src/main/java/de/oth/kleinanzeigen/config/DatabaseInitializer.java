@@ -50,7 +50,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             IndexOperations indexOps = mongoTemplate.indexOps(Ad.class);
 
             // Text Index
-            indexOps.createIndex(new TextIndexDefinition.TextIndexDefinitionBuilder().onField("title").build());
+            indexOps.createIndex(new TextIndexDefinition.TextIndexDefinitionBuilder().onField("title").withDefaultLanguage("german").build());
             // Geo Index
             indexOps.createIndex(new GeospatialIndex("location").typed(GeoSpatialIndexType.GEO_2DSPHERE));
             // Compound Index: Category + Date
@@ -67,7 +67,11 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         // Initialize 'search_logs' Capped Collection
         if (!mongoTemplate.collectionExists("search_logs")) {
-            CollectionOptions options = CollectionOptions.empty().capped().size(5242880) // 5 MB
+            CollectionOptions options
+                = CollectionOptions
+                    .empty()
+                    .capped()
+                    .size(5242880) // 5 MB
                     .maxDocuments(5000);
             mongoTemplate.createCollection("search_logs", options);
             System.out.println("--- Capped Collection 'search_logs' created ---");
@@ -106,7 +110,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         createSampleAd();
 
         // Generate random ads
-        generateRandomAds(20);
+        generateRandomAds(42);
 
         // Retrieve all ads and print them
         List<Ad> ads = adRepository.findAll();

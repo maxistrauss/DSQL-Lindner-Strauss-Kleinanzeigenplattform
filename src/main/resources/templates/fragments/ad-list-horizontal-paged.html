@@ -15,18 +15,18 @@
     <nav aria-label="Seiten-Navigation" class="mt-4">
         <ul class="pagination justify-content-center">
             <li class="page-item" th:classappend="${totalPages == 0 || currentPage == 0} ? ' disabled'">
-                <a class="page-link" th:href="@{${'/' + path}(page=${currentPage + 1})}" aria-label="Zurück">«</a>
+                <a class="page-link" th:href="@{${'/' + path}(sort=${sort}, page=${currentPage - 1})}" aria-label="Zurück">«</a>
             </li>
 
             <li class="page-item" th:each="i : ${pageNumbers}"
                 th:classappend="${i == currentPage} ? ' active'">
                 <a class="page-link"
-                   th:href="@{${'/' + path}(page=${i})}"
+                   th:href="@{${'/' + path}(sort=${sort}, page=${i})}"
                    th:text="${i + 1}">1</a>
             </li>
 
             <li class="page-item" th:classappend="${totalPages == 0 || currentPage + 1 >= totalPages} ? ' disabled'">
-                <a class="page-link" th:href="@{${'/' + path}(page=${currentPage + 1})}" aria-label="Weiter">»</a>
+                <a class="page-link" th:href="@{${'/' + path}(sort=${sort}, page=${currentPage + 1})}" aria-label="Weiter">»</a>
             </li>
         </ul>
     </nav>

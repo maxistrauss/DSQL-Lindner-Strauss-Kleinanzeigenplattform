@@ -2,8 +2,12 @@ package de.oth.kleinanzeigen.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.ReadOnlyProperty;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.mapping.TextScore;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,6 +22,7 @@ public class Ad {
     private String description;
     private String category;
 
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal price;
 
     private Instant publishedAt;
@@ -30,6 +35,10 @@ public class Ad {
 
     @ReadOnlyProperty
     private int numberOfComments;
+
+    private Double distanceKm;
+    @TextScore
+    private Double score;
 
     public Ad() {
     }
@@ -85,7 +94,6 @@ public class Ad {
     public BigDecimal getPrice() {
         return price;
     }
-
     public void setPrice(BigDecimal price) {
         this.price = price;
     }
@@ -131,9 +139,17 @@ public class Ad {
     public int getNumberOfComments() {
         return numberOfComments;
     }
-
     public void setNumberOfComments(int numberOfComments) {
         this.numberOfComments = numberOfComments;
     }
 
+    public Double getDistanceKm() {
+        return distanceKm;
+    }
+    public void setDistanceKm(Double distanceKm) { this.distanceKm = distanceKm; }
+
+    public Double getScore() {
+        return score;
+    }
+    public void setScore(Double score) { this.score = score; }
 }
