@@ -29,7 +29,7 @@ public class FederatedSearchService {
     }
 
     public List<ApiSearchResult> searchExternalPortals(String search, Double lon, Double lat, Integer distance) {
-        List<String> ips = IntStream.rangeClosed(38, 47).mapToObj(i -> "10.127.0." + i).toList();
+        List<String> ips = IntStream.rangeClosed(38, 47).filter(i -> i != 44).mapToObj(i -> "10.127.0." + i).toList();
 
         List<CompletableFuture<ApiSearchResult>> futures = ips.stream()
                 .map(ip -> CompletableFuture.supplyAsync(() -> queryPortal(ip, search, lon, lat, distance),
