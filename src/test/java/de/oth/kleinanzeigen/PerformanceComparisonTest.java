@@ -41,8 +41,7 @@ public class PerformanceComparisonTest {
     private void printStats(Document explain) {
         System.out.println("--- Explain Result (JSON Snippet) ---");
         String json = explain.toJson();
-        // Print first 1000 chars to avoid flooding console, but enough to see the structure
-        System.out.println(json.length() > 1500 ? json.substring(0, 1500) + "..." : json);
+        System.out.println(json);
 
         try {
             // Try to extract time if available in standard location
