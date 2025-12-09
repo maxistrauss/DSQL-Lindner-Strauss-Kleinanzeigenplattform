@@ -58,11 +58,4 @@ public class PerformanceComparisonTest {
             System.out.println(">> Could not parse stats details: " + e.getMessage());
         }
     }
-
-    /**
-     * Query Optimization:
-     *       Schauen Sie in den Block unter "$cursor". Dort sehen Sie den Eintrag "filter": { "category": { "$eq": "Elektronik" } }.
-     *        * Bedeutung: MongoDB hat erkannt, dass Sie nur "Elektronik" wollen. Es hat diesen Filter aus der View-Abfrage herausgenommen und direkt auf die darunterliegende Collection angewendet.
-     *        * Ohne diese Optimierung: Würde der Filter erst in einer späteren "Stage" stehen, müsste MongoDB für alle 21 Anzeigen die Kommentare zählen und dann 18 davon wegwerfen. Das wäre langsam.
-     */
 }
