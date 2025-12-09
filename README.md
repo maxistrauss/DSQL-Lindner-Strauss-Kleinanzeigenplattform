@@ -69,9 +69,6 @@ Das Projekt ist logisch und übersichtlich strukturiert, um die Wartbarkeit und 
 
 ## Such-Tracking und -Statistiken
 
-Die Anwendung protokolliert automatisch alle über die Suchfunktion (Web-UI und API) durchgeführten Volltext- und
-Umkreissuchen. Diese Daten werden in einer speziellen **Capped Collection** namens `search_logs` in MongoDB gespeichert.
-
 Die `search_logs` Collection wird beim ersten Start der Anwendung automatisch vom `DatabaseInitializer` erstellt (falls
 sie noch nicht existiert) und ist auf eine Größe von 5 MB und maximal 5000 Dokumente begrenzt.
 
@@ -84,10 +81,15 @@ Folgende Informationen werden pro Suchanfrage gespeichert:
 * **Anzahl der Ergebnisse:** Wie viele Kleinanzeigen durch die Suche gefunden wurden.
 * **IP-Adresse:** Die IP-Adresse des Benutzers, der die Suche durchgeführt hat.
 
-Diese Protokollierung dient der späteren Analyse des Nutzerverhaltens und der Optimierung der Suchfunktion.
-
-Auf der Startseite des Portals werden zudem die **Top 10 Suchbegriffe der letzten 24 Stunden** angezeigt, basierend auf
-einer Aggregations-Pipeline, die diese Daten aus der `search_logs` Collection extrahiert.
+   ```bash
+            CollectionOptions options
+                = CollectionOptions
+                    .empty()
+                    .capped()
+                    .size(5242880) // 5 MB
+                    .maxDocuments(5000);
+            mongoTemplate.createCollection("search_logs", options);
+   ```
 
 ## Datenbank-Einrichtung (MongoDB)
 
