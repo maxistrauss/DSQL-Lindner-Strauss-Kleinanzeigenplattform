@@ -78,6 +78,10 @@ public class KleinanzeigenService {
         }
 
         if (hasGeo) {
+            if(hasText) {
+                baseQuery.addCriteria(Criteria.where("title").regex(searchTitle));
+            }
+
             NearQuery nearQuery
                 = NearQuery.near(location, Metrics.KILOMETERS)
                     .maxDistance(radius, Metrics.KILOMETERS)
