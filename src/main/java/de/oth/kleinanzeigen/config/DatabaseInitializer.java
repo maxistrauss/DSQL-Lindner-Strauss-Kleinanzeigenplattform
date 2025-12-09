@@ -2,6 +2,7 @@ package de.oth.kleinanzeigen.config;
 
 import de.oth.kleinanzeigen.model.Ad;
 import de.oth.kleinanzeigen.model.Comment;
+import de.oth.kleinanzeigen.model.SearchLog;
 import de.oth.kleinanzeigen.model.Seller;
 import de.oth.kleinanzeigen.repository.AdRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -74,6 +75,8 @@ public class DatabaseInitializer implements CommandLineRunner {
                     .size(5242880) // 5 MB
                     .maxDocuments(5000);
             mongoTemplate.createCollection("search_logs", options);
+            GeospatialIndex locationIndex = new GeospatialIndex("location").typed(GeoSpatialIndexType.GEO_2DSPHERE);
+            mongoTemplate.indexOps(SearchLog.class).createIndex(locationIndex);
             System.out.println("--- Capped Collection 'search_logs' created ---");
         }
 
