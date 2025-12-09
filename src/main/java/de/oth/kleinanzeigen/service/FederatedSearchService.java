@@ -54,7 +54,7 @@ public class FederatedSearchService {
             if (lat != null)
                 uriBuilder.queryParam("lat", lat);
             if (distance != null)
-                uriBuilder.queryParam("distance", distance);
+                uriBuilder.queryParam("distance", distance * 1000);
 
             URI url = uriBuilder.build().toUri();
             // System.out.println("Querying external portal: " + url); // Too verbose if enabled for all

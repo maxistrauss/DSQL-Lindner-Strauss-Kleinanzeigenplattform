@@ -1,6 +1,7 @@
 package de.oth.kleinanzeigen.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -11,7 +12,7 @@ public class SearchLog {
     private String id;
     private Instant timestamp;
     private String query;
-    private String location;
+    private GeoJsonPoint location;
     private Integer radius; // in km
     private int resultCount;
     private String ipAddress;
@@ -19,7 +20,7 @@ public class SearchLog {
     public SearchLog() {
     }
 
-    public SearchLog(Instant timestamp, String query, String location, Integer radius, int resultCount,
+    public SearchLog(Instant timestamp, String query, GeoJsonPoint location, Integer radius, int resultCount,
             String ipAddress) {
         this.timestamp = timestamp;
         this.query = query;
@@ -53,11 +54,11 @@ public class SearchLog {
         this.query = query;
     }
 
-    public String getLocation() {
+    public GeoJsonPoint getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
+    public void setLocation(GeoJsonPoint location) {
         this.location = location;
     }
 

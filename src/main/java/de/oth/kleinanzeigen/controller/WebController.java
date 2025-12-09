@@ -38,7 +38,7 @@ public class WebController {
     private final FederatedSearchService federatedSearchService;
     private final de.oth.kleinanzeigen.service.TrackingService trackingService;
     private static final int PAGE_SIZE = 3;
-    private static final List<Integer> RADIUS_OPTIONS = Arrays.asList(1,5,10,25,50,100,250,500);
+    private static final List<Integer> RADIUS_OPTIONS = Arrays.asList(1, 5, 10, 25, 50, 100, 250, 500);
 
     public WebController(AdRepository adRepository, GridFsService gridFsService,
             KleinanzeigenService kleinanzeigenService, GeoServiceOSM geoService,
@@ -67,11 +67,16 @@ public class WebController {
         }
         int r = distance != null ? distance : -1;
 
-        Page<Ad> ads = kleinanzeigenService.findAds(search, null, location, r, "relevance", 0, 20);
+        Page<Ad> ads = kleinanzeigenService.findAds(search, null, location, r / 1000, "relevance", 0, 20);
 
         // Tracking
-        String locString = (lon != null && lat != null) ? lat + ", " + lon : null;
-        trackingService.logSearch(search, locString, distance, ads.getNumberOfElements(), request.getRemoteAddr());
+        GeoJsonPoint trackingLocation = null;
+        if (lon != null && lat != null) {
+            trackingLocation = new GeoJsonPoint(lon, lat);
+        }
+
+        trackingService.logSearch(search, trackingLocation, distance, ads.getNumberOfElements(),
+                request.getRemoteAddr());
 
         List<ApiAdResult> results = ads.getContent().stream().map(ad -> {
             String url = ServletUriComponentsBuilder.fromCurrentContextPath().path("/ads/").path(ad.getId())
@@ -83,9 +88,7 @@ public class WebController {
     }
 
     @GetMapping("/")
-    public String home(
-            Model model,
-            @CookieValue(name = "userId", required = false) String userId) {
+    public String home(Model model, @CookieValue(name = "userId", required = false) String userId) {
         model.addAttribute("userId", userId);
 
         List<Ad> randomAds = kleinanzeigenService.findRandomAds(8);
@@ -96,7 +99,7 @@ public class WebController {
         model.addAttribute("categories", categories);
         model.addAttribute("categoryCount", categoryCount);
         model.addAttribute("radiusOptions", RADIUS_OPTIONS);
-        model.addAttribute("radius", RADIUS_OPTIONS.get(RADIUS_OPTIONS.size()/2));
+        model.addAttribute("radius", RADIUS_OPTIONS.get(RADIUS_OPTIONS.size() / 2));
 
         long adCount = kleinanzeigenService.countAllAds();
         model.addAttribute("adCount", adCount);
@@ -108,9 +111,7 @@ public class WebController {
     }
 
     @GetMapping("/search")
-    public String search(
-            Model model,
-            @RequestParam(name = "title", required = false, defaultValue = "") String title,
+    public String search(Model model, @RequestParam(name = "title", required = false, defaultValue = "") String title,
             @RequestParam(name = "category", required = false) String category,
             @RequestParam(name = "address", required = false) String address,
             @RequestParam(name = "radius", required = false, defaultValue = "-1") int radius,
@@ -123,7 +124,7 @@ public class WebController {
                         + ", Radius: " + radius + ", Page: " + page + ", Sort: " + sort);
 
         GeoJsonPoint location = null;
-        if(address != null && !address.isBlank()){
+        if (address != null && !address.isBlank()) {
             location = geoService.geocode(address);
 
             // address cookie
@@ -136,8 +137,7 @@ public class WebController {
             cookie.setPath("/");
             cookie.setMaxAge(3600); // 1 hour
             response.addCookie(cookie);
-        }
-        else {
+        } else {
             // delete cookies
             Cookie cookie = new Cookie("userAddress", address);
             cookie.setPath("/");
@@ -145,12 +145,12 @@ public class WebController {
             response.addCookie(cookie);
         }
 
-        Page<Ad> adsPage = kleinanzeigenService.findAds(title, category, location, radius, sort, page , PAGE_SIZE);
+        Page<Ad> adsPage = kleinanzeigenService.findAds(title, category, location, radius, sort, page, PAGE_SIZE);
 
         // Tracking
         if (page == 0) { // Log only first page request
             Integer dist = radius > 0 ? radius : null;
-            trackingService.logSearch(title, address, dist, (int) adsPage.getTotalElements(), request.getRemoteAddr());
+            trackingService.logSearch(title, location, dist, (int) adsPage.getTotalElements(), request.getRemoteAddr());
         }
 
         if (page == 0) {
@@ -176,8 +176,7 @@ public class WebController {
 
         // list of page indices
         if (adsPage.getTotalPages() > 0) {
-            List<Integer> pageNumbers = IntStream.range(0, adsPage.getTotalPages())
-                    .boxed()
+            List<Integer> pageNumbers = IntStream.range(0, adsPage.getTotalPages()).boxed()
                     .collect(Collectors.toList());
             model.addAttribute("pageNumbers", pageNumbers);
         } else {
@@ -195,8 +194,8 @@ public class WebController {
         response.addCookie(cookie);
 
         String referer = request.getHeader("Referer");
-        if(referer != null && !referer.isEmpty()){
-            return "redirect:"+referer;
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
         } else {
             return "redirect:/";
         }
@@ -210,17 +209,15 @@ public class WebController {
         response.addCookie(cookie);
 
         String referer = request.getHeader("Referer");
-        if(referer != null && !referer.isEmpty()){
-            return "redirect:"+referer;
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
         } else {
             return "redirect:/";
         }
     }
 
     @GetMapping("/ads/new")
-    public String newAdForm(
-            Model model,
-            @CookieValue(name = "userId", required = false) String userId) {
+    public String newAdForm(Model model, @CookieValue(name = "userId", required = false) String userId) {
         if (userId == null) {
             return "redirect:/"; // Redirect to home to login
         }

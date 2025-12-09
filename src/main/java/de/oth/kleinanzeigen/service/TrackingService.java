@@ -6,6 +6,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,7 @@ public class TrackingService {
         this.mongoTemplate = mongoTemplate;
     }
 
-    public void logSearch(String query, String location, Integer radius, int resultCount, String ipAddress) {
+    public void logSearch(String query, GeoJsonPoint location, Integer radius, int resultCount, String ipAddress) {
         SearchLog log = new SearchLog(Instant.now(), query, location, radius, resultCount, ipAddress);
         mongoTemplate.save(log);
     }
