@@ -1,17 +1,17 @@
 package de.oth.kleinanzeigen.config;
 
-import de.oth.kleinanzeigen.model.Ad;
 import de.oth.kleinanzeigen.model.Comment;
 import de.oth.kleinanzeigen.model.SearchLog;
 import de.oth.kleinanzeigen.model.Seller;
-import de.oth.kleinanzeigen.repository.AdRepository;
+import de.oth.kleinanzeigen.model.elastic.Ad;
+import de.oth.kleinanzeigen.repository.elastic.AdRepository;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.data.mongodb.core.CollectionOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-import org.springframework.data.mongodb.core.index.*;
-import org.springframework.data.mongodb.core.query.BasicQuery;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
+import org.springframework.data.mongodb.core.index.GeospatialIndex;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +19,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
@@ -28,45 +27,28 @@ public class DatabaseInitializer implements CommandLineRunner {
     private final AdRepository adRepository;
     private final GridFsTemplate gridFsTemplate;
     private final MongoTemplate mongoTemplate;
+    private final ElasticsearchOperations elasticsearchOperations;
 
     private final Map<String, String> categoryImageCache = new HashMap<>();
 
-    public DatabaseInitializer(AdRepository adRepository, GridFsTemplate gridFsTemplate, MongoTemplate mongoTemplate) {
+    public DatabaseInitializer(AdRepository adRepository, GridFsTemplate gridFsTemplate, MongoTemplate mongoTemplate,
+            ElasticsearchOperations elasticsearchOperations) {
         this.adRepository = adRepository;
         this.gridFsTemplate = gridFsTemplate;
         this.mongoTemplate = mongoTemplate;
+        this.elasticsearchOperations = elasticsearchOperations;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        // Check if database already contains data
-        long adCount = mongoTemplate.count(new BasicQuery("{}"), Ad.class, "ads");
+        // Check if Elasticsearch index already contains data
+        long adCount = adRepository.count();
         if (adCount > 0) {
-            System.out.println("--- Database already contains data. Skipping initialization. ---");
+            System.out.println("--- Elasticsearch already contains data. Skipping initialization. ---");
             return;
         }
 
-        // Create Indexes manually
-        try {
-            IndexOperations indexOps = mongoTemplate.indexOps(Ad.class);
-
-            // Text Index
-            indexOps.createIndex(new TextIndexDefinition.TextIndexDefinitionBuilder().onField("title").withDefaultLanguage("german").build());
-            // Geo Index
-            indexOps.createIndex(new GeospatialIndex("location").typed(GeoSpatialIndexType.GEO_2DSPHERE));
-            // Compound Index: Category + Date
-            indexOps.createIndex(new Index().on("category", Sort.Direction.ASC).on("publishedAt", Sort.Direction.DESC));
-            // Single Field Indexes
-            indexOps.createIndex(new Index().on("price", Sort.Direction.ASC));
-            indexOps.createIndex(new Index().on("publishedAt", Sort.Direction.DESC));
-            indexOps.createIndex(new Index().on("seller.username", Sort.Direction.ASC));
-
-            System.out.println("--- Indexes for 'Ad' created manually ---");
-        } catch (Exception e) {
-            System.err.println("Error creating indexes: " + e.getMessage());
-        }
-
-        // Initialize 'search_logs' Capped Collection
+        // Initialize 'search_logs' Capped Collection (still in MongoDB)
         if (!mongoTemplate.collectionExists("search_logs")) {
             CollectionOptions options
                 = CollectionOptions
@@ -80,34 +62,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             System.out.println("--- Capped Collection 'search_logs' created ---");
         }
 
-        // Initialize 'ads_view' View
-        try {
-            com.mongodb.client.MongoDatabase db = mongoTemplate.getDb();
-            boolean exists = false;
-            for (org.bson.Document doc : db.listCollections()) {
-                if ("ads_view".equals(doc.getString("name"))) {
-                    exists = true;
-                    break;
-                }
-            }
-
-            if (exists) {
-                db.getCollection("ads_view").drop();
-            }
-
-            String viewName = "ads_view";
-            String viewOn = "ads";
-            List<org.bson.Document> pipeline = List.of(new org.bson.Document("$addFields",
-                    new org.bson.Document("numberOfComments", new org.bson.Document("$size",
-                            new org.bson.Document("$ifNull", List.of("$comments", List.of()))))));
-            db.createView(viewName, viewOn, pipeline);
-            System.out.println("--- View 'ads_view' created ---");
-
-        } catch (Exception e) {
-            System.err.println("Error creating view 'ads_view': " + e.getMessage());
-        }
-
-        System.out.println("--- Initializing Database with sample data ---");
+        System.out.println("--- Initializing Elasticsearch with sample data ---");
 
         // Save a sample ad (fixed data)
         createSampleAd();
@@ -115,9 +70,9 @@ public class DatabaseInitializer implements CommandLineRunner {
         // Generate random ads
         generateRandomAds(42);
 
-        // Retrieve all ads and print them
-        List<Ad> ads = adRepository.findAll();
-        System.out.println("--- All Ads in Database ---");
+        // Retrieve some ads and print them
+        Iterable<Ad> ads = adRepository.findAll();
+        System.out.println("--- Some Ads in Elasticsearch ---");
         ads.forEach(System.out::println);
         System.out.println("--- Database Initialization Complete ---");
     }
@@ -130,11 +85,11 @@ public class DatabaseInitializer implements CommandLineRunner {
         Comment comment = new Comment();
         comment.setUserId("user123");
         comment.setText("Super Angebot!");
-        comment.setCreatedAt(LocalDateTime.now().minusDays(1));
+        comment.setCreatedAt(Instant.now().minus(1, java.time.temporal.ChronoUnit.DAYS));
 
         Ad sampleAd = new Ad("Gebrauchtes Fahrrad", "Gut erhaltenes Herrenrad, 28 Zoll, 7 Gänge. Kaum gefahren.",
                 "Fahrräder", new BigDecimal("150.00"), Instant.now().minusSeconds(60 * 60 * 24 * 3), seller,
-                List.of(comment), null, "Hauptstraße 22, 85354 Freising", new GeoJsonPoint(2, 3));
+                List.of(comment), null, "Hauptstraße 22, 85354 Freising", new GeoPoint(48.4029, 11.7483));
 
         // Try to get an image for the sample ad
         String sampleImageId = getOrFetchImageId("Fahrräder");
@@ -196,7 +151,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             seller.setPhoneNumber("0151" + (10000000 + random.nextInt(90000000)));
 
             LocationData loc = locations.get(random.nextInt(locations.size()));
-            GeoJsonPoint point = new GeoJsonPoint(loc.lon(), loc.lat());
+            GeoPoint point = new GeoPoint(loc.lat(), loc.lon());
 
             // Generate random comments
             List<Comment> comments = generateRandomComments(random);
@@ -228,7 +183,7 @@ public class DatabaseInitializer implements CommandLineRunner {
                 Comment c = new Comment();
                 c.setText(commentTexts.get(random.nextInt(commentTexts.size())));
                 c.setUserId(users.get(random.nextInt(users.size())));
-                c.setCreatedAt(LocalDateTime.now().minusHours(random.nextInt(200)));
+                c.setCreatedAt(Instant.now().minus(random.nextInt(200), java.time.temporal.ChronoUnit.HOURS));
                 comments.add(c);
             }
         }

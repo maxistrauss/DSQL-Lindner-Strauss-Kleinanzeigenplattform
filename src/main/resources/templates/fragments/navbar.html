@@ -4,18 +4,72 @@
     <div class="container d-flex align-items-center">
         <a class="navbar-brand" href="/">OTH-Kleinanzeigen-Portal</a>
         <div class="middle-div flex-grow-1 mx-2" style="max-width: 60%;">
-            <form class="d-flex ms-auto" action="/search" method="get" onsubmit="pruneEmptyInputs(this)">
-                <input class="form-control me-2"
-                       type="search"
-                       name="title"
-                       th:value="${param.title}"
-                       placeholder="Suche..."
-                       aria-label="Search"/>
+            <form action="/search" class="d-flex ms-auto position-relative" method="get"
+                  onsubmit="pruneEmptyInputs(this)">
+                <div class="me-2 position-relative" style="flex: 3;">
+                    <input aria-label="Search"
+                           autocomplete="off"
+                           class="form-control"
+                           id="searchInput"
+                           name="title"
+                           placeholder="Suche..."
+                           th:value="${param.title}"
+                           type="search"/>
+                    <div class="list-group position-absolute w-100 z-3 d-none" id="autocomplete-results"
+                         style="top: 100%;">
+                        <!-- Results will be injected here -->
+                    </div>
+                </div>
+
+                <script>
+                    const searchInput = document.getElementById('searchInput');
+                    const resultsContainer = document.getElementById('autocomplete-results');
+
+                    searchInput.addEventListener('input', function () {
+                        const term = this.value.trim();
+                        if (term.length < 2) {
+                            resultsContainer.classList.add('d-none');
+                            return;
+                        }
+
+                        fetch('/autocomplete?term=' + encodeURIComponent(term))
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.length === 0) {
+                                    resultsContainer.classList.add('d-none');
+                                    return;
+                                }
+
+                                resultsContainer.innerHTML = '';
+                                data.forEach(item => {
+                                    const button = document.createElement('button');
+                                    button.type = 'button';
+                                    button.className = 'list-group-item list-group-item-action';
+                                    button.textContent = item;
+                                    button.addEventListener('click', () => {
+                                        searchInput.value = item;
+                                        resultsContainer.classList.add('d-none');
+                                        searchInput.closest('form').submit();
+                                    });
+                                    resultsContainer.appendChild(button);
+                                });
+                                resultsContainer.classList.remove('d-none');
+                            });
+                    });
+
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', function (e) {
+                        if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+                            resultsContainer.classList.add('d-none');
+                        }
+                    });
+                </script>
 
                 <!-- address -->
                 <input type="text"
                        name="address"
-                       class="form-control"
+                       class="form-control me-2"
+                       style="flex: 1;"
                        placeholder="PLZ oder Ort"
                        th:value="${address}">
 

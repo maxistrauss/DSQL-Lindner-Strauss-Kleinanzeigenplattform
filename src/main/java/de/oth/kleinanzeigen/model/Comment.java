@@ -1,11 +1,11 @@
 package de.oth.kleinanzeigen.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class Comment {
     private String userId;
     private String text;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     // Getters and Setters
     public String getUserId() {
@@ -24,11 +24,11 @@ public class Comment {
         this.text = text;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 }

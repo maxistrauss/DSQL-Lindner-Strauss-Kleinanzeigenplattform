@@ -1,43 +1,39 @@
 package de.oth.kleinanzeigen.service;
 
-import de.oth.kleinanzeigen.model.Ad;
-import de.oth.kleinanzeigen.model.AdView;
-import org.bson.Document;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import de.oth.kleinanzeigen.model.elastic.Ad;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
-import org.springframework.data.geo.GeoResult;
-import org.springframework.data.geo.GeoResults;
-import org.springframework.data.geo.Metrics;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-import org.springframework.data.mongodb.core.query.*;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class KleinanzeigenService {
 
-    // TODO MongoTemplate or MongoRepository ??
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private ElasticsearchOperations elasticsearchOperations;
+
     public List<Ad> findRandomAds(int n) {
-        BasicQuery query = new BasicQuery("{}", "{}");
-        List<AdView> ads = mongoTemplate.find(query, AdView.class, "ads_view");
-
-        // swap n randomly picked elements to the end of the list
-        List<Ad> copy = new ArrayList<>(ads);
-        Collections.shuffle(copy);
-
-        // take the last n elements
-        return copy.subList(0, Math.min(n, copy.size()));
+        NativeQuery query = new NativeQueryBuilder().withQuery(Query.of(q -> q.matchAll(m -> m)))
+                .withPageable(PageRequest.of(0, n)).build();
+        return elasticsearchOperations.search(query, Ad.class).stream().map(SearchHit::getContent)
+                .collect(Collectors.toList());
     }
 
     public Page<Ad> findAdsByCategory(String category, String sortOption, int page, int pageSize) {
@@ -45,122 +41,104 @@ public class KleinanzeigenService {
     }
 
     public Page<Ad> findAds(
-            String searchTitle, String category,
-            GeoJsonPoint location, int radius,
+            String searchTitle, String category, GeoPoint location, int radius,
             String sortOption,
             int page, int pageSize) {
 
-        long totalElements = 0L;
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
 
-        boolean hasText = searchTitle != null && !searchTitle.isBlank();
-        boolean hasGeo  = location != null;
-
-
-        // Pagination
-        Pageable  pageable = PageRequest.of(Math.max(0, page), pageSize);
-        long skip = pageable.getOffset();
-        long limit = pageable.getPageSize();
-
-
-        Query baseQuery = new Query();
-        List<Criteria> filters = new ArrayList<>();
-        List<AggregationOperation> aggPipeline = new ArrayList<>();
-
-        // criteria
         if (category != null && !category.isBlank()) {
-            Pattern catPattern = Pattern.compile("^" + Pattern.quote(category) + "$", Pattern.CASE_INSENSITIVE);
-            filters.add(Criteria.where("category").regex(catPattern));
+            boolQueryBuilder.filter(Query.of(q -> q.term(t -> t.field("category").value(category))));
         }
 
-        // combine criteria in base query
-        for(CriteriaDefinition criteria : filters) {
-            baseQuery.addCriteria(criteria);
+        if (searchTitle != null && !searchTitle.isBlank()) {
+            boolQueryBuilder.must(Query.of(q -> q.match(m -> m.field("title").query(searchTitle))));
         }
 
-        if (hasGeo) {
-            if(hasText) {
-                baseQuery.addCriteria(Criteria.where("title").regex(searchTitle));
-            }
-
-            NearQuery nearQuery
-                = NearQuery.near(location, Metrics.KILOMETERS)
-                    .maxDistance(radius, Metrics.KILOMETERS)
-                    .spherical(true)
-                    .query(baseQuery);
-
-            aggPipeline.add(Aggregation.geoNear(nearQuery, "distanceKm"));
-        } else if(hasText) { // if text search without geo --> use TextQuery to get text score for relevance sorting
-            TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(searchTitle);
-            TextQuery query = TextQuery.queryText(textCriteria);
-
-            aggPipeline.add(context -> new Document("$match", query.getQueryObject()));
-            aggPipeline.add(Aggregation.addFields().addFieldWithValue("score", new Document("$meta", "textScore")).build());
-        }
-        else {
-            Query query = Query.of(baseQuery);
-            aggPipeline.add(context -> new Document("$match", query.getQueryObject()));
+        if (location != null) {
+            boolQueryBuilder.filter(Query.of(q -> q.geoDistance(g -> g.field("location").distance(radius + "km")
+                    .location(l -> l.latlon(ll -> ll.lat(location.getLat()).lon(location.getLon()))))));
         }
 
-        // get total elements (needed for pagination) - sort, skip, limit irrelevant here
-        List<AggregationOperation> countPipeline = new ArrayList<>(aggPipeline);
-        countPipeline.add(Aggregation.count().as("totalResults"));
-        Aggregation countAgg = Aggregation.newAggregation(countPipeline);
-        AggregationResults<Document> countAggResult = mongoTemplate.aggregate(countAgg, "ads", Document.class);
-        if (!countAggResult.getMappedResults().isEmpty()) {
-            totalElements = countAggResult.getMappedResults().getFirst().getInteger("totalResults", 0);
+        NativeQueryBuilder queryBuilder = new NativeQueryBuilder().withQuery(
+                        Query.of(q -> q.bool(boolQueryBuilder.build())))
+                .withPageable(PageRequest.of(Math.max(0, page), pageSize));
+
+        applySorting(queryBuilder, sortOption, searchTitle != null && !searchTitle.isBlank(), location);
+
+        SearchHits<Ad> searchHits = elasticsearchOperations.search(queryBuilder.build(), Ad.class);
+        List<Ad> ads = searchHits.getSearchHits().stream().map(hit -> {
+            Ad ad = hit.getContent();
+            ad.setScore(hit.getScore() != Float.NaN ? (double) hit.getScore() : 0.0);
+            ad.setNumberOfComments(ad.getComments() != null ? ad.getComments().size() : 0);
+            return ad;
+        }).collect(Collectors.toList());
+
+        return new PageImpl<>(ads, PageRequest.of(Math.max(0, page), pageSize), searchHits.getTotalHits());
+    }
+
+    private void applySorting(NativeQueryBuilder queryBuilder, String sortOption, boolean hasText, GeoPoint location) {
+        switch (sortOption == null ? "" : sortOption) {
+            case "relevance":
+                if (hasText)
+                    queryBuilder.withSort(s -> s.score(sc -> sc.order(SortOrder.Desc)));
+                else if (location != null)
+                    queryBuilder.withSort(s -> s.geoDistance(g -> g.field("location")
+                            .location(l -> l.latlon(ll -> ll.lat(location.getLat()).lon(location.getLon())))
+                            .order(SortOrder.Asc)));
+                else
+                    queryBuilder.withSort(s -> s.field(f -> f.field("publishedAt").order(SortOrder.Desc)));
+                break;
+            case "title_asc":
+                queryBuilder.withSort(s -> s.field(f -> f.field("title.keyword").order(SortOrder.Asc)));
+                break;
+            case "title_desc":
+                queryBuilder.withSort(s -> s.field(f -> f.field("title.keyword").order(SortOrder.Desc)));
+                break;
+            case "price_asc":
+                queryBuilder.withSort(s -> s.field(f -> f.field("price").order(SortOrder.Asc)));
+                break;
+            case "price_desc":
+                queryBuilder.withSort(s -> s.field(f -> f.field("price").order(SortOrder.Desc)));
+                break;
+            case "distance_asc":
+                if (location != null)
+                    queryBuilder.withSort(s -> s.geoDistance(g -> g.field("location")
+                            .location(l -> l.latlon(ll -> ll.lat(location.getLat()).lon(location.getLon())))
+                            .order(SortOrder.Asc)));
+                break;
+            default:
+                queryBuilder.withSort(s -> s.field(f -> f.field("publishedAt").order(SortOrder.Desc)));
         }
+    }
 
-        // determine and add sort stage based on option
-        AggregationOperation sortOp = buildSortOp(sortOption, hasText, hasGeo);
-        aggPipeline.add(sortOp);
+    public List<String> autocomplete(String term) {
+        // We use a bool query to match the term as a prefix in any part of the title
+        NativeQuery query = new NativeQueryBuilder().withQuery(Query.of(q -> q.bool(
+                        b -> b.should(s -> s.matchPhrasePrefix(m -> m.field("title").query(term)))
+                                .should(s -> s.wildcard(w -> w.field("title").wildcard("*" + term.toLowerCase() + "*"))))))
+                .withPageable(PageRequest.of(0, 10)).build();
 
-        // add pagination
-        aggPipeline.add(Aggregation.skip(skip));
-        aggPipeline.add(Aggregation.limit(limit));
-
-        Aggregation dataAgg = Aggregation.newAggregation(aggPipeline);
-        AggregationResults<Ad> aggResults = mongoTemplate.aggregate(dataAgg, "ads",  Ad.class);
-        List<Ad> results = new ArrayList<>(aggResults.getMappedResults());
-
-        // Manually calculate numberOfComments since we are not using the view
-        results.forEach(ad -> ad.setNumberOfComments(ad.getComments() != null ? ad.getComments().size() : 0));
-
-        return new PageImpl<>(results, pageable, totalElements);
+        return elasticsearchOperations.search(query, Ad.class).stream().map(hit -> hit.getContent().getTitle())
+                .distinct().collect(Collectors.toList());
     }
 
     public List<String> findAllCategories() {
-        BasicQuery query = new BasicQuery("{}", "{category: 1, _id:  0}");
-        query.with(Sort.by(Sort.Direction.ASC, "category"));
-        return mongoTemplate.findDistinct(query, "category", Ad.class, String.class);
+        NativeQuery query = new NativeQueryBuilder().withQuery(Query.of(q -> q.matchAll(m -> m)))
+                .withPageable(PageRequest.of(0, 1000)).build();
+        return elasticsearchOperations.search(query, Ad.class).stream().map(hit -> hit.getContent().getCategory())
+                .distinct().sorted().collect(Collectors.toList());
     }
 
     public boolean hasCategoryAds(String category) {
-        BasicQuery query = new BasicQuery(String.format("{category: '%s'}", category), "{}");
-        return !mongoTemplate.find(query, Ad.class).isEmpty();
+        NativeQuery query = new NativeQueryBuilder().withQuery(
+                        Query.of(q -> q.term(t -> t.field("category").value(category)))).withPageable(PageRequest.of(0, 1))
+                .build();
+        return elasticsearchOperations.count(query, Ad.class) > 0;
     }
 
     public long countAllAds() {
-        return mongoTemplate.count(new BasicQuery("{}"), Ad.class);
-    }
-
-    private AggregationOperation buildSortOp(String sortOption, boolean hasText, boolean hasGeo) {
-        return switch (sortOption == null ? "" : sortOption) {
-            // relevance by text score only possible if hasText and no geo
-            case "relevance" -> {
-                if(hasText && !hasGeo)
-                    yield Aggregation.sort(Sort.by("score").descending().and(Sort.by("publishedAt").descending()));
-                else if(hasGeo)
-                    yield Aggregation.sort(Sort.by("distanceKm").ascending().and(Sort.by("publishedAt").descending()));
-                else
-                    yield Aggregation.sort(Sort.by("publishedAt").descending());
-            }
-            case "title_asc" -> Aggregation.sort(Sort.by("title").ascending());
-            case "title_desc" -> Aggregation.sort(Sort.by("title").descending());
-            case "price_asc" -> Aggregation.sort(Sort.by("price").ascending().and(Sort.by("publishedAt").descending()));
-            case "price_desc" -> Aggregation.sort(Sort.by("price").descending().and(Sort.by("publishedAt").descending()));
-            case "distance_asc" -> Aggregation.sort(Sort.by("distanceKm").ascending());
-            case "distance_desc" -> Aggregation.sort(Sort.by("distanceKm").descending());
-            default -> Aggregation.sort(Sort.by("publishedAt").descending());
-        };
+        NativeQuery query = new NativeQueryBuilder().withQuery(Query.of(q -> q.matchAll(m -> m))).build();
+        return elasticsearchOperations.count(query, Ad.class);
     }
 }

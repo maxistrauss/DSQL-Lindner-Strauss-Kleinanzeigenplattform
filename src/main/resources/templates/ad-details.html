@@ -126,9 +126,9 @@
         let hasLocation = /*[[${ad.location != null}]]*/ false;
         if (!hasLocation) return;
 
-        // get coords from model: GeoJsonPoint has x=lon, y=lat
-        const lat = /*[[${ad.location.y}]]*/ 0;
-        const lon = /*[[${ad.location.x}]]*/ 0;
+        // get coords from model: GeoPoint has lat, lon
+        const lat = /*[[${ad.location.lat}]]*/ 0;
+        const lon = /*[[${ad.location.lon}]]*/ 0;
 
         const map = L.map('adMap').setView([lat, lon], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

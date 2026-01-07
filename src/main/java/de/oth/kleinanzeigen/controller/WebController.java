@@ -2,10 +2,10 @@ package de.oth.kleinanzeigen.controller;
 
 import de.oth.kleinanzeigen.dto.ApiAdResult;
 import de.oth.kleinanzeigen.dto.ApiSearchResult;
-import de.oth.kleinanzeigen.model.Ad;
 import de.oth.kleinanzeigen.model.Comment;
 import de.oth.kleinanzeigen.model.Seller;
-import de.oth.kleinanzeigen.repository.AdRepository;
+import de.oth.kleinanzeigen.model.elastic.Ad;
+import de.oth.kleinanzeigen.repository.elastic.AdRepository;
 import de.oth.kleinanzeigen.service.FederatedSearchService;
 import de.oth.kleinanzeigen.service.GeoServiceOSM;
 import de.oth.kleinanzeigen.service.GridFsService;
@@ -14,6 +14,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,7 +24,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -61,9 +61,9 @@ public class WebController {
         System.out.println("API search request received. Search term: " + search + ", Lon: " + lon + ", Lat: " + lat
                 + ", Distance: " + distance);
 
-        GeoJsonPoint location = null;
+        GeoPoint location = null;
         if (lon != null && lat != null) {
-            location = new GeoJsonPoint(lon, lat);
+            location = new GeoPoint(lat, lon);
         }
         int r = distance != null ? distance : -1;
 
@@ -85,6 +85,12 @@ public class WebController {
         }).collect(Collectors.toList());
 
         return new ApiSearchResult("OTH-Kleinanzeigen-Portal", results);
+    }
+
+    @GetMapping("/autocomplete")
+    @ResponseBody
+    public List<String> autocomplete(@RequestParam String term) {
+        return kleinanzeigenService.autocomplete(term);
     }
 
     @GetMapping("/")
@@ -123,9 +129,13 @@ public class WebController {
                 "Web search request received. Title: " + title + ", Category: " + category + ", Address: " + address
                         + ", Radius: " + radius + ", Page: " + page + ", Sort: " + sort);
 
-        GeoJsonPoint location = null;
+        GeoJsonPoint mongoLocation = null;
+        GeoPoint esLocation = null;
         if (address != null && !address.isBlank()) {
-            location = geoService.geocode(address);
+            mongoLocation = geoService.geocode(address);
+            if (mongoLocation != null) {
+                esLocation = new GeoPoint(mongoLocation.getY(), mongoLocation.getX());
+            }
 
             // address cookie
             Cookie cookie = new Cookie("userAddress", address);
@@ -145,17 +155,18 @@ public class WebController {
             response.addCookie(cookie);
         }
 
-        Page<Ad> adsPage = kleinanzeigenService.findAds(title, category, location, radius, sort, page, PAGE_SIZE);
+        Page<Ad> adsPage = kleinanzeigenService.findAds(title, category, esLocation, radius, sort, page, PAGE_SIZE);
 
         // Tracking
         if (page == 0) { // Log only first page request
             Integer dist = radius > 0 ? radius : null;
-            trackingService.logSearch(title, location, dist, (int) adsPage.getTotalElements(), request.getRemoteAddr());
+            trackingService.logSearch(title, mongoLocation, dist, (int) adsPage.getTotalElements(),
+                    request.getRemoteAddr());
         }
 
         if (page == 0) {
-            Double lon = location != null ? location.getX() : null;
-            Double lat = location != null ? location.getY() : null;
+            Double lon = mongoLocation != null ? mongoLocation.getX() : null;
+            Double lat = mongoLocation != null ? mongoLocation.getY() : null;
             Integer dist = radius > 0 ? radius : null;
             List<ApiSearchResult> externalResults = federatedSearchService.searchExternalPortals(title.trim(), lon, lat,
                     dist);
@@ -235,7 +246,10 @@ public class WebController {
         }
         ad.setPublishedAt(Instant.now());
 
-        ad.setLocation(geoService.geocode(ad.getAddress()));
+        GeoJsonPoint mongoPoint = geoService.geocode(ad.getAddress());
+        if (mongoPoint != null) {
+            ad.setLocation(new GeoPoint(mongoPoint.getY(), mongoPoint.getX()));
+        }
 
         Seller seller = new Seller();
         seller.setUsername(userId);
@@ -280,7 +294,7 @@ public class WebController {
 
             Comment comment = new Comment();
             comment.setText(text);
-            comment.setCreatedAt(LocalDateTime.now());
+            comment.setCreatedAt(Instant.now());
 
             String commenterName;
             if (loggedInUserId != null && !loggedInUserId.isEmpty()) {

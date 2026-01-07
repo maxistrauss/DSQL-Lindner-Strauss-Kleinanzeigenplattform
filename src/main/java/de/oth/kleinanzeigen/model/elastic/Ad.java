@@ -1,50 +1,65 @@
-package de.oth.kleinanzeigen.model;
+package de.oth.kleinanzeigen.model.elastic;
 
+import de.oth.kleinanzeigen.model.Comment;
+import de.oth.kleinanzeigen.model.Seller;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.ReadOnlyProperty;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-import org.springframework.data.mongodb.core.mapping.FieldType;
-import org.springframework.data.mongodb.core.mapping.TextScore;
+import org.springframework.data.elasticsearch.annotations.*;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-@Document(collection = "ads")
+@Document(indexName = "ads")
 public class Ad {
 
     @Id
     private String id;
+
+    @Field(type = FieldType.Text, analyzer = "german")
     private String title;
+
+    @Field(type = FieldType.Text, analyzer = "german")
     private String description;
+
+    @Field(type = FieldType.Keyword)
     private String category;
 
-    @Field(targetType = FieldType.DECIMAL128)
+    @Field(type = FieldType.Double)
     private BigDecimal price;
 
+    @Field(type = FieldType.Date, format = DateFormat.date_time)
     private Instant publishedAt;
 
+    @Field(type = FieldType.Object)
     private Seller seller;
+
+    @Field(type = FieldType.Nested)
     private List<Comment> comments;
+
+    @Field(type = FieldType.Keyword)
     private String imageId;
+
+    @Field(type = FieldType.Text)
     private String address;
-    private GeoJsonPoint location;
+
+    @GeoPointField
+    private GeoPoint location;
 
     @ReadOnlyProperty
     private int numberOfComments;
 
+    @WriteOnlyProperty
     private Double distanceKm;
-    @TextScore
+    @WriteOnlyProperty
     private Double score;
 
     public Ad() {
     }
 
     public Ad(String title, String description, String category, BigDecimal price, Instant publishedAt, Seller seller,
-            List<Comment> comments, String imageId, String address, GeoJsonPoint location) {
+            List<Comment> comments, String imageId, String address, GeoPoint location) {
         this.title = title;
         this.description = description;
         this.category = category;
@@ -133,8 +148,13 @@ public class Ad {
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
-    public GeoJsonPoint getLocation() { return location; }
-    public void setLocation(GeoJsonPoint location) { this.location = location; }
+    public GeoPoint getLocation() {
+        return location;
+    }
+
+    public void setLocation(GeoPoint location) {
+        this.location = location;
+    }
 
     public int getNumberOfComments() {
         return numberOfComments;
