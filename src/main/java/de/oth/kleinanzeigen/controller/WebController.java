@@ -89,8 +89,29 @@ public class WebController {
 
     @GetMapping("/autocomplete")
     @ResponseBody
-    public List<String> autocomplete(@RequestParam String term) {
-        return kleinanzeigenService.autocomplete(term);
+    public List<Map<String, String>> autocomplete(@RequestParam String term) {
+        List<String> trendSuggestions = kleinanzeigenService.suggestTrendingTerms(term);
+        List<String> adSuggestions = kleinanzeigenService.autocomplete(term);
+
+        List<Map<String, String>> results = new ArrayList<>();
+
+        // Add trends first
+        trendSuggestions.forEach(t -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("text", t);
+            map.put("type", "trend");
+            results.add(map);
+        });
+
+        // Add ads (avoid duplicates with trends)
+        adSuggestions.stream().filter(ad -> !trendSuggestions.contains(ad)).limit(10 - results.size()).forEach(ad -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("text", ad);
+            map.put("type", "ad");
+            results.add(map);
+        });
+
+        return results;
     }
 
     @GetMapping("/")

@@ -4,6 +4,7 @@ import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import de.oth.kleinanzeigen.model.elastic.Ad;
+import de.oth.kleinanzeigen.model.elastic.SearchTerm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -52,27 +53,58 @@ public class KleinanzeigenService {
         }
 
         if (searchTitle != null && !searchTitle.isBlank()) {
-            boolQueryBuilder.must(Query.of(q -> q.match(m -> m.field("title").query(searchTitle))));
+
+            boolQueryBuilder.must(Query.of(q -> q.multiMatch(m -> m
+
+                    .fields("title^3", "description")
+
+                    .query(searchTitle))));
+
         }
 
         if (location != null) {
-            boolQueryBuilder.filter(Query.of(q -> q.geoDistance(g -> g.field("location").distance(radius + "km")
-                    .location(l -> l.latlon(ll -> ll.lat(location.getLat()).lon(location.getLon()))))));
+
+            boolQueryBuilder.filter(Query.of(q -> q.geoDistance(g -> g
+
+                    .field("location")
+
+                    .distance(radius + "km")
+
+                    .location(l -> l.latlon(ll -> ll.lat(location.getLat()).lon(location.getLon())))
+
+            )));
+
         }
 
-        NativeQueryBuilder queryBuilder = new NativeQueryBuilder().withQuery(
-                        Query.of(q -> q.bool(boolQueryBuilder.build())))
-                .withPageable(PageRequest.of(Math.max(0, page), pageSize));
+        NativeQueryBuilder queryBuilder = new NativeQueryBuilder()
+
+                .withQuery(Query.of(q -> q.bool(boolQueryBuilder.build())))
+
+                .withPageable(PageRequest.of(Math.max(0, page), pageSize))
+
+                .withTrackScores(true); // Ensure scores are calculated even when sorting
 
         applySorting(queryBuilder, sortOption, searchTitle != null && !searchTitle.isBlank(), location);
 
         SearchHits<Ad> searchHits = elasticsearchOperations.search(queryBuilder.build(), Ad.class);
-        List<Ad> ads = searchHits.getSearchHits().stream().map(hit -> {
-            Ad ad = hit.getContent();
-            ad.setScore(hit.getScore() != Float.NaN ? (double) hit.getScore() : 0.0);
-            ad.setNumberOfComments(ad.getComments() != null ? ad.getComments().size() : 0);
-            return ad;
-        }).collect(Collectors.toList());
+
+        List<Ad> ads = searchHits.getSearchHits().stream()
+
+                .map(hit -> {
+
+                    Ad ad = hit.getContent();
+
+                    ad.setScore(Float.isNaN(hit.getScore()) ? 0.0 : (double) hit.getScore());
+
+                    ad.setNumberOfComments(ad.getComments() != null ? ad.getComments().size() : 0);
+
+                    return ad;
+
+                })
+
+                .collect(Collectors.toList());
+
+        
 
         return new PageImpl<>(ads, PageRequest.of(Math.max(0, page), pageSize), searchHits.getTotalHits());
     }
@@ -113,15 +145,58 @@ public class KleinanzeigenService {
     }
 
     public List<String> autocomplete(String term) {
-        // We use a bool query to match the term as a prefix in any part of the title
-        NativeQuery query = new NativeQueryBuilder().withQuery(Query.of(q -> q.bool(
-                        b -> b.should(s -> s.matchPhrasePrefix(m -> m.field("title").query(term)))
-                                .should(s -> s.wildcard(w -> w.field("title").wildcard("*" + term.toLowerCase() + "*"))))))
-                .withPageable(PageRequest.of(0, 10)).build();
 
-        return elasticsearchOperations.search(query, Ad.class).stream().map(hit -> hit.getContent().getTitle())
-                .distinct().collect(Collectors.toList());
+        // We use a bool query to match the term as a prefix in any part of the title
+
+        NativeQuery query = new NativeQueryBuilder()
+
+                .withQuery(Query.of(q -> q.bool(b -> b
+
+                        .should(s -> s.matchPhrasePrefix(m -> m.field("title").query(term)))
+
+                        .should(s -> s.wildcard(w -> w.field("title").wildcard("*" + term.toLowerCase() + "*")))
+
+                )))
+
+                .withPageable(PageRequest.of(0, 10))
+
+                .build();
+
+        return elasticsearchOperations.search(query, Ad.class)
+
+                .stream()
+
+                .map(hit -> hit.getContent().getTitle())
+
+                .distinct()
+
+                .collect(Collectors.toList());
+
     }
+
+    public List<String> suggestTrendingTerms(String term) {
+
+        NativeQuery query = new NativeQueryBuilder()
+
+                .withQuery(Query.of(q -> q.matchPhrasePrefix(m -> m.field("term").query(term))))
+
+                .withSort(s -> s.field(f -> f.field("count").order(SortOrder.Desc)))
+
+                .withPageable(PageRequest.of(0, 5))
+
+                .build();
+
+        return elasticsearchOperations.search(query, SearchTerm.class)
+
+                .stream()
+
+                .map(hit -> hit.getContent().getTerm())
+
+                .collect(Collectors.toList());
+
+    }
+
+    
 
     public List<String> findAllCategories() {
         NativeQuery query = new NativeQueryBuilder().withQuery(Query.of(q -> q.matchAll(m -> m)))
