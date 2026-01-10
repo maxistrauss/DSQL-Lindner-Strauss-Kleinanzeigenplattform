@@ -2,14 +2,12 @@ package de.oth.kleinanzeigen.controller;
 
 import de.oth.kleinanzeigen.dto.ApiAdResult;
 import de.oth.kleinanzeigen.dto.ApiSearchResult;
+import de.oth.kleinanzeigen.model.Ad;
 import de.oth.kleinanzeigen.model.Comment;
 import de.oth.kleinanzeigen.model.Seller;
-import de.oth.kleinanzeigen.model.elastic.Ad;
-import de.oth.kleinanzeigen.repository.elastic.AdRepository;
-import de.oth.kleinanzeigen.service.FederatedSearchService;
-import de.oth.kleinanzeigen.service.GeoServiceOSM;
-import de.oth.kleinanzeigen.service.GridFsService;
-import de.oth.kleinanzeigen.service.KleinanzeigenService;
+import de.oth.kleinanzeigen.model.elastic.AdSearchDocument;
+import de.oth.kleinanzeigen.repository.mongo.AdRepository;
+import de.oth.kleinanzeigen.service.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,19 +29,21 @@ import java.util.stream.IntStream;
 @Controller
 public class WebController {
 
+    private final AdService adService;
     private final AdRepository adRepository;
     private final GridFsService gridFsService;
     private final KleinanzeigenService kleinanzeigenService;
     private final GeoServiceOSM geoService;
     private final FederatedSearchService federatedSearchService;
-    private final de.oth.kleinanzeigen.service.TrackingService trackingService;
+    private final TrackingService trackingService;
     private static final int PAGE_SIZE = 3;
     private static final List<Integer> RADIUS_OPTIONS = Arrays.asList(1, 5, 10, 25, 50, 100, 250, 500);
 
-    public WebController(AdRepository adRepository, GridFsService gridFsService,
+    public WebController(AdService adService, AdRepository adRepository, GridFsService gridFsService,
             KleinanzeigenService kleinanzeigenService, GeoServiceOSM geoService,
             FederatedSearchService federatedSearchService,
-            de.oth.kleinanzeigen.service.TrackingService trackingService) {
+            TrackingService trackingService) {
+        this.adService = adService;
         this.adRepository = adRepository;
         this.gridFsService = gridFsService;
         this.kleinanzeigenService = kleinanzeigenService;
@@ -67,7 +67,7 @@ public class WebController {
         }
         int r = distance != null ? distance : -1;
 
-        Page<Ad> ads = kleinanzeigenService.findAds(search, null, location, r / 1000, "relevance", 0, 20);
+        Page<AdSearchDocument> ads = kleinanzeigenService.findAds(search, null, location, r / 1000, "relevance", 0, 20);
 
         // Tracking
         GeoJsonPoint trackingLocation = null;
@@ -118,7 +118,7 @@ public class WebController {
     public String home(Model model, @CookieValue(name = "userId", required = false) String userId) {
         model.addAttribute("userId", userId);
 
-        List<Ad> randomAds = kleinanzeigenService.findRandomAds(8);
+        List<AdSearchDocument> randomAds = kleinanzeigenService.findRandomAds(8);
         List<String> categories = kleinanzeigenService.findAllCategories();
         long categoryCount = categories.size();
 
@@ -142,7 +142,7 @@ public class WebController {
             @RequestParam(name = "category", required = false) String category,
             @RequestParam(name = "address", required = false) String address,
             @RequestParam(name = "radius", required = false, defaultValue = "-1") int radius,
-            @RequestParam(name = "sort", required = false, defaultValue = "relevance") String sort,
+            @RequestParam(name = "sort", required = false) String sort,
             @RequestParam(name = "page", required = false, defaultValue = "0") int page,
             @CookieValue(name = "userId", required = false) String userId, HttpServletResponse response,
             HttpServletRequest request) {
@@ -176,7 +176,19 @@ public class WebController {
             response.addCookie(cookie);
         }
 
-        Page<Ad> adsPage = kleinanzeigenService.findAds(title, category, esLocation, radius, sort, page, PAGE_SIZE);
+        if(sort == null){
+            if(title != null && !title.isBlank()){
+                sort = "relevance";
+            }
+            else if(address != null && !address.isBlank()){
+                sort = "distance";
+            }
+            else {
+                sort = "publishedAt";
+            }
+        }
+
+        Page<AdSearchDocument> adsPage = kleinanzeigenService.findAds(title, category, esLocation, radius, sort, page, PAGE_SIZE);
 
         // Tracking
         if (page == 0) { // Log only first page request
@@ -261,16 +273,13 @@ public class WebController {
 
     @PostMapping("/ads/new")
     public String createAd(Ad ad, @RequestParam("file") MultipartFile file,
-            @CookieValue(name = "userId", required = false) String userId) throws IOException {
+                           @CookieValue(name = "userId", required = false) String userId) throws IOException {
         if (userId == null) {
             return "redirect:/"; // Should not happen if form is protected
         }
         ad.setPublishedAt(Instant.now());
 
-        GeoJsonPoint mongoPoint = geoService.geocode(ad.getAddress());
-        if (mongoPoint != null) {
-            ad.setLocation(new GeoPoint(mongoPoint.getY(), mongoPoint.getX()));
-        }
+        ad.setLocation(geoService.geocode(ad.getAddress()));
 
         Seller seller = new Seller();
         seller.setUsername(userId);
@@ -282,7 +291,7 @@ public class WebController {
             ad.setImageId(imageId);
         }
 
-        Ad savedAd = adRepository.save(ad);
+        Ad savedAd = adService.createAd(ad);
         return "redirect:/ads/" + savedAd.getId();
     }
 
@@ -327,11 +336,7 @@ public class WebController {
             }
             comment.setUserId(commenterName);
 
-            if (ad.getComments() == null) {
-                ad.setComments(new ArrayList<>());
-            }
-            ad.getComments().add(comment);
-            adRepository.save(ad);
+            adService.addComment(ad.getId(),comment);
 
             return "redirect:/ads/" + id;
         } else {
@@ -357,7 +362,7 @@ public class WebController {
 
     @PostMapping("/ads/{id}/edit")
     public String updateAd(@PathVariable String id, Ad adData, @RequestParam("file") MultipartFile file,
-            @CookieValue(name = "userId", required = false) String userId) throws IOException {
+                           @CookieValue(name = "userId", required = false) String userId) throws IOException {
         Optional<Ad> adOptional = adRepository.findById(id);
         if (adOptional.isPresent()) {
             Ad ad = adOptional.get();
@@ -372,7 +377,7 @@ public class WebController {
                     ad.setImageId(imageId);
                 }
 
-                adRepository.save(ad);
+                adService.updateAd(ad.getId(), ad);
                 return "redirect:/ads/" + id;
             }
         }
@@ -385,7 +390,7 @@ public class WebController {
         if (adOptional.isPresent()) {
             Ad ad = adOptional.get();
             if (userId != null && userId.equals(ad.getSeller().getUsername())) {
-                adRepository.deleteById(id);
+                adService.deleteAd(id);
             }
         }
         return "redirect:/";

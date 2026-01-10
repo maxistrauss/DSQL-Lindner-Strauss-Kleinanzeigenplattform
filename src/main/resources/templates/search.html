@@ -32,11 +32,8 @@
                 <input type="hidden" name="radius" th:if="${radius != null}" th:value="${radius}"/>
 
                 <select name="sort" class="form-select me-2" onchange="this.form.submit()">
-                    <option value="relevance"
-                            th:selected="${sort == 'relevance'}"
-                            th:text="${address != null} ? 'Relevanz (Entfernung)' : 'Relevanz (Suchbegriff)'">
-                        Relevanz
-                    </option>
+                    <option value="relevance"  th:if="${title != null && !title.isBlank()}" th:selected="${sort == 'relevance'}" >Relevanz</option>
+                    <option value="distance"  th:if="${address != null}" th:selected="${sort == 'distance'}" >Distance</option>
                     <option value="title_asc" th:selected="${sort == 'title_asc'}">Bezeichnung ↑</option>
                     <option value="title_desc" th:selected="${sort == 'title_desc'}">Bezeichnung ↓</option>
                     <option value="price_asc" th:selected="${sort == 'price_asc'}">Preis ↑</option>

@@ -1,6 +1,6 @@
 package de.oth.kleinanzeigen.controller;
 
-import de.oth.kleinanzeigen.model.elastic.Ad;
+import de.oth.kleinanzeigen.model.elastic.AdSearchDocument;
 import de.oth.kleinanzeigen.service.KleinanzeigenService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -35,7 +35,7 @@ class CategoryController {
             @CookieValue(name = "userId", required = false) String userId) {
         boolean categoryHasAds = kleinanzeigenService.hasCategoryAds(category);
         if (categoryHasAds) {
-            Page<Ad> adsPage = kleinanzeigenService.findAdsByCategory(category, sort, page, PAGE_SIZE);
+            Page<AdSearchDocument> adsPage = kleinanzeigenService.findAdsByCategory(category, sort, page, PAGE_SIZE);
 
             model.addAttribute("userId", userId); // Add userId to the model
             model.addAttribute("category", category);

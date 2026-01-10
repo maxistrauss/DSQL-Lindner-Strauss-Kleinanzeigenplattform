@@ -3,7 +3,7 @@ package de.oth.kleinanzeigen.service;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import de.oth.kleinanzeigen.model.elastic.Ad;
+import de.oth.kleinanzeigen.model.elastic.AdSearchDocument;
 import de.oth.kleinanzeigen.model.elastic.SearchTerm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,33 +15,34 @@ import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
+import org.springframework.data.elasticsearch.core.query.ScriptData;
+import org.springframework.data.elasticsearch.core.query.ScriptType;
+import org.springframework.data.elasticsearch.core.query.ScriptedField;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class KleinanzeigenService {
 
     @Autowired
-    private MongoTemplate mongoTemplate;
-
-    @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
-    public List<Ad> findRandomAds(int n) {
+    public List<AdSearchDocument> findRandomAds(int n) {
         NativeQuery query = new NativeQueryBuilder().withQuery(Query.of(q -> q.matchAll(m -> m)))
                 .withPageable(PageRequest.of(0, n)).build();
-        return elasticsearchOperations.search(query, Ad.class).stream().map(SearchHit::getContent)
+        return elasticsearchOperations.search(query, AdSearchDocument.class).stream().map(SearchHit::getContent)
                 .collect(Collectors.toList());
     }
 
-    public Page<Ad> findAdsByCategory(String category, String sortOption, int page, int pageSize) {
+    public Page<AdSearchDocument> findAdsByCategory(String category, String sortOption, int page, int pageSize) {
         return findAds(null, category, null, 0, sortOption, page, pageSize);
     }
 
-    public Page<Ad> findAds(
+    public Page<AdSearchDocument> findAds(
             String searchTitle, String category, GeoPoint location, int radius,
             String sortOption,
             int page, int pageSize) {
@@ -84,19 +85,31 @@ public class KleinanzeigenService {
 
                 .withTrackScores(true); // Ensure scores are calculated even when sorting
 
-        applySorting(queryBuilder, sortOption, searchTitle != null && !searchTitle.isBlank(), location);
+        if(location != null) {
+            String src = "doc['location'].arcDistance(params.lat, params.lon)/1000";
+            Map<String, Object> params = Map.of("lat", location.getLat(), "lon", location.getLon());
 
-        SearchHits<Ad> searchHits = elasticsearchOperations.search(queryBuilder.build(), Ad.class);
+            ScriptData scriptData = ScriptData.builder()
+                    .withScript(src)
+                    .withParams(params)
+                    .withType(ScriptType.INLINE)
+                    .build();
 
-        List<Ad> ads = searchHits.getSearchHits().stream()
+            ScriptedField scriptedField = new ScriptedField("distanceKm", scriptData);
+            queryBuilder.withScriptedField(scriptedField);
+        }
+        queryBuilder.withSourceFilter(FetchSourceFilter.of(b -> b.withIncludes("*")));
+        boolean hasText = searchTitle != null && !searchTitle.isBlank();
+        applySorting(queryBuilder, sortOption, hasText, location);
+
+        SearchHits<AdSearchDocument> searchHits = elasticsearchOperations.search(queryBuilder.build(), AdSearchDocument.class);
+
+        List<AdSearchDocument> ads = searchHits.getSearchHits().stream()
 
                 .map(hit -> {
 
-                    Ad ad = hit.getContent();
-
-                    ad.setScore(Float.isNaN(hit.getScore()) ? 0.0 : (double) hit.getScore());
-
-                    ad.setNumberOfComments(ad.getComments() != null ? ad.getComments().size() : 0);
+                    AdSearchDocument ad = hit.getContent();
+                    ad.setScore(Float.isNaN(hit.getScore()) ? 0.0f : hit.getScore());
 
                     return ad;
 
@@ -112,20 +125,18 @@ public class KleinanzeigenService {
     private void applySorting(NativeQueryBuilder queryBuilder, String sortOption, boolean hasText, GeoPoint location) {
         switch (sortOption == null ? "" : sortOption) {
             case "relevance":
-                if (hasText)
                     queryBuilder.withSort(s -> s.score(sc -> sc.order(SortOrder.Desc)));
-                else if (location != null)
-                    queryBuilder.withSort(s -> s.geoDistance(g -> g.field("location")
-                            .location(l -> l.latlon(ll -> ll.lat(location.getLat()).lon(location.getLon())))
-                            .order(SortOrder.Asc)));
-                else
-                    queryBuilder.withSort(s -> s.field(f -> f.field("publishedAt").order(SortOrder.Desc)));
+                break;
+            case "distance":
+                queryBuilder.withSort(s -> s.geoDistance(g -> g.field("location")
+                        .location(l -> l.latlon(ll -> ll.lat(location.getLat()).lon(location.getLon())))
+                        .order(SortOrder.Asc)));
                 break;
             case "title_asc":
-                queryBuilder.withSort(s -> s.field(f -> f.field("title.keyword").order(SortOrder.Asc)));
+                queryBuilder.withSort(s -> s.field(f -> f.field("title.raw").order(SortOrder.Asc)));
                 break;
             case "title_desc":
-                queryBuilder.withSort(s -> s.field(f -> f.field("title.keyword").order(SortOrder.Desc)));
+                queryBuilder.withSort(s -> s.field(f -> f.field("title.raw").order(SortOrder.Desc)));
                 break;
             case "price_asc":
                 queryBuilder.withSort(s -> s.field(f -> f.field("price").order(SortOrder.Asc)));
@@ -162,7 +173,7 @@ public class KleinanzeigenService {
 
                 .build();
 
-        return elasticsearchOperations.search(query, Ad.class)
+        return elasticsearchOperations.search(query, AdSearchDocument.class)
 
                 .stream()
 
@@ -201,7 +212,7 @@ public class KleinanzeigenService {
     public List<String> findAllCategories() {
         NativeQuery query = new NativeQueryBuilder().withQuery(Query.of(q -> q.matchAll(m -> m)))
                 .withPageable(PageRequest.of(0, 1000)).build();
-        return elasticsearchOperations.search(query, Ad.class).stream().map(hit -> hit.getContent().getCategory())
+        return elasticsearchOperations.search(query, AdSearchDocument.class).stream().map(hit -> hit.getContent().getCategory())
                 .distinct().sorted().collect(Collectors.toList());
     }
 
@@ -209,11 +220,11 @@ public class KleinanzeigenService {
         NativeQuery query = new NativeQueryBuilder().withQuery(
                         Query.of(q -> q.term(t -> t.field("category").value(category)))).withPageable(PageRequest.of(0, 1))
                 .build();
-        return elasticsearchOperations.count(query, Ad.class) > 0;
+        return elasticsearchOperations.count(query, AdSearchDocument.class) > 0;
     }
 
     public long countAllAds() {
         NativeQuery query = new NativeQueryBuilder().withQuery(Query.of(q -> q.matchAll(m -> m))).build();
-        return elasticsearchOperations.count(query, Ad.class);
+        return elasticsearchOperations.count(query, AdSearchDocument.class);
     }
 }

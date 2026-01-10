@@ -1,17 +1,21 @@
 package de.oth.kleinanzeigen.config;
 
+import de.oth.kleinanzeigen.model.Ad;
 import de.oth.kleinanzeigen.model.Comment;
 import de.oth.kleinanzeigen.model.SearchLog;
 import de.oth.kleinanzeigen.model.Seller;
-import de.oth.kleinanzeigen.model.elastic.Ad;
-import de.oth.kleinanzeigen.repository.elastic.AdRepository;
+import de.oth.kleinanzeigen.model.elastic.AdSearchDocument;
+import de.oth.kleinanzeigen.repository.mongo.AdRepository;
+import de.oth.kleinanzeigen.service.AdService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.geo.GeoPoint;
+import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.data.mongodb.core.CollectionOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
 import org.springframework.data.mongodb.core.index.GeospatialIndex;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +24,7 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class DatabaseInitializer implements CommandLineRunner {
@@ -27,25 +32,36 @@ public class DatabaseInitializer implements CommandLineRunner {
     private final AdRepository adRepository;
     private final GridFsTemplate gridFsTemplate;
     private final MongoTemplate mongoTemplate;
-    private final ElasticsearchOperations elasticsearchOperations;
+    private final ElasticsearchOperations esOps;
 
     private final Map<String, String> categoryImageCache = new HashMap<>();
 
-    public DatabaseInitializer(AdRepository adRepository, GridFsTemplate gridFsTemplate, MongoTemplate mongoTemplate,
-            ElasticsearchOperations elasticsearchOperations) {
+    public DatabaseInitializer(
+            AdRepository adRepository,
+            GridFsTemplate gridFsTemplate,
+            MongoTemplate mongoTemplate,
+            ElasticsearchOperations esOps) {
         this.adRepository = adRepository;
         this.gridFsTemplate = gridFsTemplate;
         this.mongoTemplate = mongoTemplate;
-        this.elasticsearchOperations = elasticsearchOperations;
+        this.esOps = esOps;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        // Check if Elasticsearch index already contains data
+        // Check if MongoDB already contains data
         long adCount = adRepository.count();
-        if (adCount > 0) {
-            System.out.println("--- Elasticsearch already contains data. Skipping initialization. ---");
-            return;
+        if (adCount == 0) {
+            System.out.println("--- Initializing MongoDB with sample data ---");
+
+            // Save a sample ad (fixed data)
+            createSampleAd();
+
+            // Generate random ads
+            generateRandomAds(42);
+        }
+        else {
+            System.out.println("--- MongoDB already contains data. Skipping initialization. ---");
         }
 
         // Initialize 'search_logs' Capped Collection (still in MongoDB)
@@ -62,19 +78,49 @@ public class DatabaseInitializer implements CommandLineRunner {
             System.out.println("--- Capped Collection 'search_logs' created ---");
         }
 
-        System.out.println("--- Initializing Elasticsearch with sample data ---");
+        System.out.println("--- Sync MongoDB <-> Elasticsearch ---");
+        checkES();
+        System.out.println("--- Finished Sync ---");
 
-        // Save a sample ad (fixed data)
-        createSampleAd();
-
-        // Generate random ads
-        generateRandomAds(42);
-
-        // Retrieve some ads and print them
-        Iterable<Ad> ads = adRepository.findAll();
-        System.out.println("--- Some Ads in Elasticsearch ---");
-        ads.forEach(System.out::println);
         System.out.println("--- Database Initialization Complete ---");
+    }
+
+    private void checkES() {
+        // just reindex all for now because even if count matches the data is not necesarrily the same
+        /*
+        IndexOperations indexOps = esOps.indexOps(AdSearchDocument.class);
+        if (!indexOps.exists()) {
+            indexOps.create();
+            indexOps.putMapping(indexOps.createMapping(AdSearchDocument.class));
+        }
+        else {
+            long mongoCount = mongoTemplate.count(new Query(), Ad.class);
+            long esCount = esOps.count(new NativeSearchQueryBuilder().withQuery(QueryBuilders.matchAllQuery()).build(), AdSearchDocument.class);
+            if (mongoCount != esCount) {
+                reindexAll();
+            }
+        }
+        */
+
+        reindexAll();
+
+    }
+    private void reindexAll() {
+        // delete, recreate index then bulk save in batches
+        IndexOperations ops = esOps.indexOps(AdSearchDocument.class);
+        ops.delete();
+        ops.create();
+        ops.putMapping(ops.createMapping(AdSearchDocument.class));
+
+        // batch from Mongo:
+        int batch = 500;
+        long total = mongoTemplate.count(new Query(), Ad.class);
+        for (int pos = 0; pos < total; pos += batch) {
+            List<Ad> page = mongoTemplate.find(new Query().skip(pos).limit(batch), Ad.class);
+            List<AdSearchDocument> docs = page.stream().map(AdService::toSearchDoc).collect(Collectors.toList());
+            esOps.save(docs);
+            esOps.indexOps(AdSearchDocument.class).refresh();
+        }
     }
 
     private void createSampleAd() {
@@ -89,7 +135,7 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         Ad sampleAd = new Ad("Gebrauchtes Fahrrad", "Gut erhaltenes Herrenrad, 28 Zoll, 7 Gänge. Kaum gefahren.",
                 "Fahrräder", new BigDecimal("150.00"), Instant.now().minusSeconds(60 * 60 * 24 * 3), seller,
-                List.of(comment), null, "Hauptstraße 22, 85354 Freising", new GeoPoint(48.4029, 11.7483));
+                List.of(comment), null, "Hauptstraße 22, 85354 Freising", new GeoJsonPoint(48.4029, 11.7483));
 
         // Try to get an image for the sample ad
         String sampleImageId = getOrFetchImageId("Fahrräder");
@@ -151,7 +197,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             seller.setPhoneNumber("0151" + (10000000 + random.nextInt(90000000)));
 
             LocationData loc = locations.get(random.nextInt(locations.size()));
-            GeoPoint point = new GeoPoint(loc.lat(), loc.lon());
+            GeoJsonPoint point = new GeoJsonPoint(loc.lat(), loc.lon());
 
             // Generate random comments
             List<Comment> comments = generateRandomComments(random);
