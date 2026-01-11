@@ -54,13 +54,11 @@ public class KleinanzeigenService {
         }
 
         if (searchTitle != null && !searchTitle.isBlank()) {
-
-            boolQueryBuilder.must(Query.of(q -> q.multiMatch(m -> m
-
-                    .fields("title^3", "description")
-
-                    .query(searchTitle))));
-
+            boolQueryBuilder.must(Query.of(q -> q.bool(b -> b.should(
+                            s -> s.multiMatch(m -> m.fields("title^3", "description").query(searchTitle).fuzziness("AUTO")))
+                    .should(s -> s.multiMatch(m -> m.fields("title^5", "description^2").query(searchTitle)
+                            .type(co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType.Phrase)))
+                    .minimumShouldMatch("1"))));
         }
 
         if (location != null) {
@@ -157,20 +155,13 @@ public class KleinanzeigenService {
 
     public List<String> autocomplete(String term) {
 
-        // We use a bool query to match the term as a prefix in any part of the title
-
+        // Improved autocomplete with fuzziness and phrase prefix
         NativeQuery query = new NativeQueryBuilder()
-
                 .withQuery(Query.of(q -> q.bool(b -> b
-
                         .should(s -> s.matchPhrasePrefix(m -> m.field("title").query(term)))
-
-                        .should(s -> s.wildcard(w -> w.field("title").wildcard("*" + term.toLowerCase() + "*")))
-
+                        .should(s -> s.match(m -> m.field("title").query(term).fuzziness("AUTO")))
                 )))
-
                 .withPageable(PageRequest.of(0, 10))
-
                 .build();
 
         return elasticsearchOperations.search(query, AdSearchDocument.class)
