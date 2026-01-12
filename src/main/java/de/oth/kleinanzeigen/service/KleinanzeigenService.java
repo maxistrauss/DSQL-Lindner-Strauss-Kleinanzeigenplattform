@@ -35,7 +35,12 @@ public class KleinanzeigenService {
         var funcScoreQuery = QueryBuilders.wrapper().query("{ \"function_score\": { \"query\": { \"match_all\": {} }, \"random_score\": {} } }").build();
 
         NativeQuery query = new NativeQueryBuilder()
-                .withQuery(Query.of(q -> q.functionScore(f -> f.query(m -> m.matchAll(x -> x)).functions(r -> r.randomScore(a -> a)))))
+                .withQuery(Query.of(
+                        q -> q.functionScore(
+                                f -> f
+                                        .query(
+                                        m -> m.matchAll(x -> x))
+                                        .functions(r -> r.randomScore(a -> a)))))
                 .withPageable(PageRequest.of(0, n))
                 .build();
         return elasticsearchOperations.search(query, AdSearchDocument.class).stream().map(SearchHit::getContent)
