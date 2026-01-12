@@ -1,8 +1,7 @@
 package de.oth.kleinanzeigen.service;
 
 import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import de.oth.kleinanzeigen.model.elastic.AdSearchDocument;
 import de.oth.kleinanzeigen.model.elastic.SearchTerm;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +20,7 @@ import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.ScriptedField;
 import org.springframework.stereotype.Service;
 
+import java.sql.Wrapper;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,8 +32,12 @@ public class KleinanzeigenService {
     private ElasticsearchOperations elasticsearchOperations;
 
     public List<AdSearchDocument> findRandomAds(int n) {
-        NativeQuery query = new NativeQueryBuilder().withQuery(Query.of(q -> q.matchAll(m -> m)))
-                .withPageable(PageRequest.of(0, n)).build();
+        var funcScoreQuery = QueryBuilders.wrapper().query("{ \"function_score\": { \"query\": { \"match_all\": {} }, \"random_score\": {} } }").build();
+
+        NativeQuery query = new NativeQueryBuilder()
+                .withQuery(Query.of(q -> q.functionScore(f -> f.query(m -> m.matchAll(x -> x)).functions(r -> r.randomScore(a -> a)))))
+                .withPageable(PageRequest.of(0, n))
+                .build();
         return elasticsearchOperations.search(query, AdSearchDocument.class).stream().map(SearchHit::getContent)
                 .collect(Collectors.toList());
     }
