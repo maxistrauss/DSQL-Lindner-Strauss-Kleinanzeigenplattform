@@ -67,6 +67,7 @@ public class KleinanzeigenService {
                             s -> s.multiMatch(m -> m.fields("title^3", "description").query(searchTitle).fuzziness("AUTO")))
                     .should(s -> s.multiMatch(m -> m.fields("title^5", "description^2").query(searchTitle)
                             .type(co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType.Phrase)))
+                    .should(s -> s.matchPhrasePrefix(m -> m.field("title^3").query(searchTitle.toLowerCase())))
                     .minimumShouldMatch("1"))));
         }
 

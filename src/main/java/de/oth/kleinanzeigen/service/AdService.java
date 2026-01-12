@@ -27,6 +27,11 @@ public class AdService {
     @Transactional
     public Ad createAd(Ad ad) {
         ad.setPublishedAt(Instant.now());
+
+        if(ad.getComments() == null) {
+            ad.setComments(new ArrayList<>());
+        }
+
         Ad saved = adRepository.save(ad);
 
         // index synchronously
@@ -39,6 +44,10 @@ public class AdService {
     @Transactional
     public Ad updateAd(String adId, Ad update) {
         Ad ad = adRepository.findById(adId).orElseThrow(() -> new NoSuchElementException("Ad not found: " + adId));
+
+        if(ad.getComments() == null) {
+            ad.setComments(new ArrayList<>());
+        }
 
         ad.setTitle(update.getTitle());
         ad.setDescription(update.getDescription());
@@ -95,7 +104,8 @@ public class AdService {
         if (ad.getLocation() != null) {
             d.setLocation(new GeoPoint(ad.getLocation().getY(), ad.getLocation().getX())); // lat, lon
         }
-        d.setNumberOfComments(ad.getComments().size());
+        int numberOfComments = ad.getComments() != null ? ad.getComments().size() : 0;
+        d.setNumberOfComments(numberOfComments);
         return d;
     }
 }
